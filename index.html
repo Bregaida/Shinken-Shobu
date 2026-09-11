@@ -545,8 +545,8 @@
 @keyframes btrail{0%{opacity:0;stroke-dashoffset:64}22%{opacity:1}55%{opacity:.9;stroke-dashoffset:0}100%{opacity:0;stroke-dashoffset:-24}}
 /* queda: o perdedor tomba para o próprio lado, girando nos pés */
 .arena-svg .sil.down{opacity:.4}
-.arena-svg .sil.left.down{animation:silFallL .8s ease forwards!important}
-.arena-svg .sil.right.down{animation:silFallR .8s ease forwards!important}
+.arena-svg .sil.left.down{animation:silFallL .8s ease .25s forwards!important}
+.arena-svg .sil.right.down{animation:silFallR .8s ease .25s forwards!important}
 @keyframes silFallL{0%{transform:none}28%{transform:translateY(1px) rotate(-6deg)}100%{opacity:.3;transform:translateY(9px) rotate(-27deg)}}
 @keyframes silFallR{0%{transform:none}28%{transform:translateY(1px) rotate(6deg)}100%{opacity:.3;transform:translateY(9px) rotate(27deg)}}
 .arena-svg .arena-spark{transform-box:fill-box;transform-origin:center;opacity:0;filter:drop-shadow(0 0 5px rgba(255,205,100,.9))}
@@ -641,6 +641,26 @@
  .duelarena.hitstop{animation:none!important}
  .duel .fighter.victor::after,.duel .fighter.win::after{animation:none!important;opacity:.38}
 }
+/* ---- corte iai (Samurai X): investida em borrão + imagem residual + kime + talho ---- */
+.arena-svg .ghost{opacity:0;transform-box:fill-box;transform-origin:center bottom}
+.arena-svg .sil.iaiL{animation:iaiDashL .55s cubic-bezier(.25,.7,.2,1) forwards}
+.arena-svg .sil.iaiR{animation:iaiDashR .55s cubic-bezier(.25,.7,.2,1) forwards}
+@keyframes iaiDashL{0%{transform:none;filter:none}30%{transform:translateX(70px) scaleX(1.1);filter:blur(1.6px)}62%{transform:translateX(124px);filter:blur(.6px)}100%{transform:translateX(110px);filter:none}}
+@keyframes iaiDashR{0%{transform:none;filter:none}30%{transform:translateX(-70px) scaleX(1.1);filter:blur(1.6px)}62%{transform:translateX(-124px);filter:blur(.6px)}100%{transform:translateX(-110px);filter:none}}
+.arena-svg .ghost.go.iaiL{animation:ghostDashL .55s ease-out}
+.arena-svg .ghost.go.iaiR{animation:ghostDashR .55s ease-out}
+@keyframes ghostDashL{0%{opacity:0;transform:none}16%{opacity:.5}44%{opacity:.3;transform:translateX(94px)}100%{opacity:0;transform:translateX(118px)}}
+@keyframes ghostDashR{0%{opacity:0;transform:none}16%{opacity:.5}44%{opacity:.3;transform:translateX(-94px)}100%{opacity:0;transform:translateX(-118px)}}
+.fx-kime{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 46%,transparent 22%,rgba(0,0,0,.5) 100%)}
+.fx-kime.go{animation:kimeHold 1.15s ease-out}
+@keyframes kimeHold{0%{opacity:0}16%{opacity:1}72%{opacity:1}100%{opacity:0}}
+.fx-redslash{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0}
+.fx-redslash::before{content:"";position:absolute;left:6%;top:47%;width:88%;height:5px;border-radius:3px;transform:translateY(-50%) rotate(-25deg) scaleX(0);transform-origin:left center;background:linear-gradient(90deg,transparent,rgba(210,34,26,.2) 8%,rgba(226,44,32,.98) 50%,rgba(210,34,26,.2) 92%,transparent);box-shadow:0 0 9px rgba(214,32,22,.85)}
+.fx-redslash.go{animation:redHold 1.15s ease-out}
+.fx-redslash.go::before{animation:redDraw 1.15s cubic-bezier(.15,.85,.2,1)}
+@keyframes redHold{0%{opacity:0}12%{opacity:1}74%{opacity:1}100%{opacity:0}}
+@keyframes redDraw{0%{transform:translateY(-50%) rotate(-25deg) scaleX(0)}20%{transform:translateY(-50%) rotate(-25deg) scaleX(1)}100%{transform:translateY(-50%) rotate(-25deg) scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.arena-svg .sil.iaiL,.arena-svg .sil.iaiR,.arena-svg .ghost,.fx-kime,.fx-redslash{animation:none!important;opacity:0!important}}
 
 </style>
 
@@ -1549,6 +1569,8 @@ function wpnName(w){try{return WEAPONS[primaryWeapon(w)].nome;}catch(e){return t
 /* narração: modelos com marcadores {A} {B} {X} {Y} {W} {L} {w} */
 const NARR={
  open:{pt:'As lâminas deixam a bainha. {A} ({eA}) contra {B} ({eB}) — sem armadura, sem montaria, só técnica.',en:'The blades leave their sheaths. {A} ({eA}) against {B} ({eB}) — no armor, no horse, only skill.',es:'Las hojas salen de la vaina. {A} ({eA}) contra {B} ({eB}) — sin armadura, sin montura, solo técnica.',ja:'刃が鞘を離れる。{A}（{eA}）対{B}（{eB}）——鎧なし、馬なし、技のみ。',fr:'Les lames quittent le fourreau. {A} ({eA}) contre {B} ({eB}) — sans armure, sans monture, rien que la technique.',it:'Le lame lasciano il fodero. {A} ({eA}) contro {B} ({eB}) — senza armatura, senza cavallo, solo tecnica.'},
+ openWar:{pt:'No campo, as armaduras pesam. {A} ({eA}) contra {B} ({eB}) — alcance e potência acima da esgrima fina.',en:'On the field, armor weighs heavy. {A} ({eA}) against {B} ({eB}) — reach and power over fine fencing.',es:'En el campo, las armaduras pesan. {A} ({eA}) contra {B} ({eB}) — alcance y potencia por encima de la esgrima fina.',ja:'戦場では甲冑が物を言う。{A}（{eA}）対{B}（{eB}）——技よりも間合いと威力。',fr:'Sur le champ, l’armure pèse. {A} ({eA}) contre {B} ({eB}) — allonge et puissance avant l’escrime fine.',it:'Sul campo, l’armatura pesa. {A} ({eA}) contro {B} ({eB}) — allungo e potenza più della scherma fine.'},
+ openCav:{pt:'Os cavalos avançam. {A} ({eA}) contra {B} ({eB}) — montados e blindados, a lança e o arco ditam o combate.',en:'The horses charge. {A} ({eA}) against {B} ({eB}) — mounted and armored, spear and bow rule the fight.',es:'Los caballos avanzan. {A} ({eA}) contra {B} ({eB}) — montados y blindados, la lanza y el arco dictan el combate.',ja:'馬が駆ける。{A}（{eA}）対{B}（{eB}）——騎馬に甲冑、槍と弓が戦いを支配する。',fr:'Les chevaux chargent. {A} ({eA}) contre {B} ({eB}) — montés et cuirassés, la lance et l’arc dictent le combat.',it:'I cavalli caricano. {A} ({eA}) contro {B} ({eB}) — a cavallo e corazzati, la lancia e l’arco dettano il combattimento.'},
  tecnica:{pt:'{X} impõe o estilo do {e}.',en:'{X} imposes the {e} style.',es:'{X} impone el estilo del {e}.',ja:'{X}が{e}の型を押し通す。',fr:'{X} impose le style du {e}.',it:'{X} impone lo stile del {e}.'},
  reach:{pt:'{X} controla a distância com {w}: cada passo de {Y} custa caro.',en:'{X} controls the distance with {w}: every step {Y} takes is costly.',es:'{X} controla la distancia con {w}: cada paso de {Y} sale caro.',ja:'{X}は{w}で間合いを支配し、{Y}の一歩ごとに代償を強いる。',fr:'{X} contrôle la distance avec {w} : chaque pas de {Y} coûte cher.',it:'{X} controlla la distanza con {w}: ogni passo di {Y} si paga caro.'},
  arco:{pt:'{X} abre com o arco e força {Y} a avançar sob a mira.',en:'{X} opens with the bow, forcing {Y} to advance under aim.',es:'{X} abre con el arco y obliga a {Y} a avanzar bajo la mira.',ja:'{X}は弓で先手を取り、{Y}を狙いの下で前進させる。',fr:'{X} ouvre à l’arc et force {Y} à avancer sous la visée.',it:'{X} apre con l’arco e costringe {Y} ad avanzare sotto tiro.'},
@@ -1611,7 +1633,8 @@ function buildBeats(a,b,r,mode){
   const Wn=r.winner,Ln=r.loser,beats=[];
   const clampMo=v=>Math.max(7,Math.min(93,v));let mo=50;
   const wp=w=>wpnName(w),sc=w=>(mode==='cav'?Math.round(w.cvx):mode==='war'?Math.round(w.bfx):w.ov);
-  beats.push({mo:50,key:true,text:fillNarr('open',{A:a.n,B:b.n,eA:t(a.g),eB:t(b.g)}),detail:t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]});
+  const openK=mode==='cav'?'openCav':mode==='war'?'openWar':'open';
+  beats.push({mo:50,key:true,text:fillNarr(openK,{A:a.n,B:b.n,eA:t(a.g),eB:t(b.g)}),detail:t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]});
   const order=[['p','Haste'],['b','Arco'],['s','Espada'],['y','Físico'],['k','Instinto'],['x','Experiência'],['t','Estratégia']];
   const tplFor=(k,lead)=>k==='p'?((lead.b>=lead.p&&lead.b>=80)?'arco':'reach'):k==='b'?'arco':k==='s'?'sword':k==='y'?'fis':k==='k'?'ins':k==='x'?'vet':'strat';
   const usedTpl={},axisBeats=[];
@@ -1641,13 +1664,22 @@ const ARENA='<div class="duelarena" aria-hidden="true"><svg viewBox="0 0 400 116
 +'<path d="M81,49 L114,32 L116,35 L83,53 Z"/>'
 +'</g></defs>'
 +'<g class="ground"><ellipse cx="130" cy="110" rx="33" ry="4"/><ellipse cx="270" cy="110" rx="33" ry="4"/></g>'
++'<g transform="translate(89,0)"><g class="ghost gL" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
++'<g transform="translate(311,0) scale(-1,1)"><g class="ghost gR" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
 +'<g transform="translate(89,0)"><g class="sil left" fill="currentColor"><use href="#skenshu-bushi"/><path class="btrail" d="M95,55 Q123,33 118,25"/></g></g>'
 +'<g transform="translate(311,0) scale(-1,1)"><g class="sil right" fill="currentColor"><use href="#skenshu-bushi"/><path class="btrail" d="M95,55 Q123,33 118,25"/></g></g>'
 +'<circle class="arena-spark" cx="200" cy="36" r="12" fill="rgba(255,220,130,.95)"/></svg>'
-+'<i class="fx-slash"></i><i class="fx-speed"></i><i class="fx-flash"></i><div class="fx-kanji"></div></div>';
++'<i class="fx-kime"></i><i class="fx-redslash"></i><i class="fx-slash"></i><i class="fx-speed"></i><i class="fx-flash"></i><div class="fx-kanji"></div></div>';
 function fxSlash(ar,dir){if(!ar)return;const s=ar.querySelector('.fx-slash');if(!s)return;s.classList.remove('go','ltr','rtl');void s.offsetWidth;s.classList.add('go',dir>=0?'ltr':'rtl');}
 function fxSpeed(ar){if(!ar)return;const s=ar.querySelector('.fx-speed');if(!s)return;s.classList.remove('go');void s.offsetWidth;s.classList.add('go');}
 function fxFinish(ar,kanji){if(!ar)return;const f=ar.querySelector('.fx-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}const k=ar.querySelector('.fx-kanji');if(k){k.textContent=kanji||'一閃';k.classList.remove('go');void k.offsetWidth;k.classList.add('go');}ar.classList.remove('hitstop');void ar.offsetWidth;ar.classList.add('hitstop');}
+/* corte iai estilo Samurai X: investida em borrão + imagem residual, congelamento (kime) e talho vermelho */
+function fxIai(ar,winSide){if(!ar)return;const cls=winSide==='L'?'iaiL':'iaiR';
+  const wSil=ar.querySelector(winSide==='L'?'.sil.left':'.sil.right'),wGho=ar.querySelector(winSide==='L'?'.ghost.gL':'.ghost.gR');
+  if(wSil){wSil.classList.remove('lunge','iaiL','iaiR');void wSil.offsetWidth;wSil.classList.add(cls);}
+  if(wGho){wGho.classList.remove('go','iaiL','iaiR');void wGho.offsetWidth;wGho.classList.add('go',cls);}
+  const km=ar.querySelector('.fx-kime'),rs=ar.querySelector('.fx-redslash');
+  setTimeout(function(){if(km){km.classList.remove('go');void km.offsetWidth;km.classList.add('go');}if(rs){rs.classList.remove('go');void rs.offsetWidth;rs.classList.add('go');}},230);}
 function duelStage(a,b,mode){
   return `<div class="duel setup">${fcard(a,false,mode)}<div class="mid"><span class="sw">${mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,false,mode)}</div>
    ${ARENA}
@@ -1713,7 +1745,7 @@ function playDuel(){
       if(bt.fin){
         const wc=r.winner===a?cardA:cardB,lc=r.winner===a?cardB:cardA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}
         const wS=r.winner===a?silL:silR,lS=r.winner===a?silR:silL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}
-        fxFinish(arena,bt.kanji);fx(duelEl,'finish');
+        fxFinish(arena,bt.kanji);fxIai(arena,r.winner===a?'L':'R');fx(duelEl,'finish');
       }
     }
     i++;duelTimers.push(setTimeout(step,reduce?0:2000));
@@ -1836,7 +1868,7 @@ function matchModal(a,b,mode){
           if(sL&&sR){sL.classList.remove('lunge','recoil');sR.classList.remove('lunge','recoil');sL.getBoundingClientRect();if(dir>0.4){sL.classList.add('lunge');sR.classList.add('recoil');}else if(dir<-0.4){sR.classList.add('lunge');sL.classList.add('recoil');}}}
         fx(mid,'clash');fx(tens,'pulse');fxs(sp,'flash');if(duel){duel.classList.remove('shake','shake-hard');void duel.offsetWidth;duel.classList.add(bt.fin?'shake-hard':'shake');}
         fxSlash(ar,dir);if(Math.abs(dir)>=1.8||bt.fin)fxSpeed(ar);
-        if(bt.fin){const wc=r.winner===a?cA:cB,lc=r.winner===a?cB:cA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}const wS=r.winner===a?sL:sR,lS=r.winner===a?sR:sL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}fxFinish(ar,bt.kanji);fx(duel,'finish');}}
+        if(bt.fin){const wc=r.winner===a?cA:cB,lc=r.winner===a?cB:cA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}const wS=r.winner===a?sL:sR,lS=r.winner===a?sR:sL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}fxFinish(ar,bt.kanji);fxIai(ar,r.winner===a?'L':'R');fx(duel,'finish');}}
       i++;dmTimer=setTimeout(step,reduce?0:2000);
     };step();
   };
