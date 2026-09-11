@@ -580,6 +580,24 @@
 .steps ol li:nth-child(n+8){animation-delay:.45s}
 @keyframes stIn{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.verdictline,.duel .fighter.win,.steps ol li{animation:none!important}}
+/* ---- #4 comparação direta: radar de 7 eixos ---- */
+.radarwrap{margin:16px auto 6px;max-width:420px;text-align:center;animation:vIn .5s ease both}
+.radar-h{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:2px}
+.radar{display:block;width:100%;max-width:360px;height:auto;margin:0 auto;overflow:visible}
+.radar-leg{display:flex;gap:20px;justify-content:center;margin-top:2px;font-size:.86rem;font-weight:600;color:var(--ink)}
+.radar-leg span{display:inline-flex;align-items:center;gap:7px}
+.radar-leg i{width:13px;height:13px;border-radius:3px;display:inline-block}
+.radar-leg i.dash{background:transparent;border:2px dashed}
+/* ---- #3 fator sorte: "E se?" ---- */
+.whatif{margin:14px 0 4px;text-align:center}
+.whatif-out{margin-top:10px}
+.luckroll{border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:12px;padding:12px 16px;background:var(--panel);text-align:left;animation:stIn .4s ease both}
+.luckroll.upset{border-left-color:#b5342a;box-shadow:0 0 0 1px rgba(181,52,42,.18)}
+.luck-imp{margin:0 0 4px;font-size:.98rem;color:var(--ink);font-style:italic}
+.luck-res{margin:0 0 6px;font-size:1.02rem;font-weight:700;color:var(--accent)}
+.luckroll.upset .luck-res{color:#d8544a}
+.luck-note{margin:0;font-size:.78rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.radarwrap,.luckroll{animation:none!important}}
 
 </style>
 
@@ -760,6 +778,7 @@
       <div class="modeseg" role="group" aria-label="Modo de combate">
         <button class="segbtn on" data-mode="duel">⚔️ Duelo</button>
         <button class="segbtn" data-mode="war">🐎 Campo de batalha</button>
+        <button class="segbtn" data-mode="cav">🏇 A cavalo</button>
       </div>
       <p class="modenote" id="modenote">Duelo 1×1 a pé, sem armadura — a esgrima manda.</p>
       <div class="simpick">
@@ -1122,7 +1141,7 @@ W.forEach((w,i)=>{
   w.i=i;
   w.ovx=w.s*.30+w.p*.11+w.b*.05+w.y*.16+w.x*.15+w.t*.09+w.k*.14;
   w.ov=Math.round(w.ovx);
-  w.bfx=w.s*.12+w.p*.24+w.b*.12+w.y*.18+w.x*.18+w.t*.10+w.k*.06;  // nota de campo de batalha
+  w.bfx=w.s*.12+w.p*.24+w.b*.12+w.y*.18+w.x*.18+w.t*.10+w.k*.06; w.cvx=w.s*.06+w.p*.26+w.b*.18+w.y*.18+w.x*.16+w.t*.10+w.k*.06;  // nota de campo de batalha
   w.tier=w.ov>=87?'S':w.ov>=83?'A':w.ov>=78?'B':w.ov>=73?'C':'D';
 });
 const byName={}; W.forEach(w=>byName[w.n]=w);
@@ -1361,7 +1380,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')){const
 /* ================= ENGINE DE COMBATE ================= */
 /* nota base + vantagens condicionais e realistas de matchup */
 function resolve(a,b,mode){
-  const bx=w=>(mode==='war'?w.bfx:w.ovx);
+  const bx=w=>(mode==='cav'?w.cvx:mode==='war'?w.bfx:w.ovx);
   const reach=(f,o)=>(o.p<82 && f.p>o.p+8 && f.p>=f.s-4)?(f.p-o.p)*0.07:0;   // lança vs quem não tem alcance (peso reduzido)
   const strike=(f,o)=>(f.k>=90 && f.k>o.k+3)?(f.k-o.k)*0.09:0;               // primeiro golpe (peso reduzido — a surpresa quase some num duelo frontal)
   const arch=(f,o)=>(f.b>=84 && f.b>o.b+10)?(f.b-o.b)*0.06:0;               // abertura com arco
@@ -1476,7 +1495,7 @@ function makeCombo(el,onPick,initIdx,ph){
 const ABL=[["Espada","s"],["Haste","p"],["Arco","b"],["Físico","y"],["Experiência","x"],["Estratégia","t"],["Instinto","k"]];
 function optsHTML(sel){let h='';[1,2,3,4,5].forEach(e=>{h+=`<optgroup label="${ERA[e].nm}">`;[...W].filter(w=>w.e===e).sort((a,b)=>b.ov-a.ov).forEach(w=>{h+=`<option value="${w.i}"${w.i===sel?' selected':''}>${w.n} · ${w.ov}</option>`;});h+='</optgroup>';});return h;}
 function closeness(m){return m<1.2?['Praticamente um empate — decidido no fio da lâmina','empate técnico']:m<3?['Vitória apertada','apertado']:m<7?['Vitória clara','claro']:['Domínio','domínio'];}
-function fcard(w,win,mode){const sc=mode==='war'?Math.round(w.bfx):w.ov;const lab=mode==='war'?t('nota de guerra'):t('nota de duelo');return `<div class="fighter ${win?'win':''}">${win?`<span class="badge">${t('Vence')}</span>`:''}<div class="nm">${w.n}</div><div class="er"><span class="dot" style="background:${ecol(w.e)}"></span>${ERA[w.e].nm}</div><div class="big">${sc}<small>${lab}</small></div></div>`;}
+function fcard(w,win,mode){const sc=mode==='cav'?Math.round(w.cvx):mode==='war'?Math.round(w.bfx):w.ov;const lab=mode==='cav'?t('nota a cavalo'):mode==='war'?t('nota de guerra'):t('nota de duelo');return `<div class="fighter ${win?'win':''}">${win?`<span class="badge">${t('Vence')}</span>`:''}<div class="nm">${w.n}</div><div class="er"><span class="dot" style="background:${ecol(w.e)}"></span>${ERA[w.e].nm}</div><div class="big">${sc}<small>${lab}</small></div></div>`;}
 /* ============ DUELO ROUND A ROUND + COMPARTILHAR ============ */
 let simMode='duel';
 let duelState={played:false,a:null,b:null,mode:null};
@@ -1506,10 +1525,49 @@ const NARR={
 /* strings de UI novas (6 idiomas) — injetadas após a definição de TR (feat_uitr) */
 function fillNarr(key,subs){var o=NARR[key];var s=(o&&(o[LANG]||o.pt))||'';for(var k in subs)s=s.split('{'+k+'}').join(subs[k]);return s;}
 const clamp2=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+function winPct(m){return Math.round(50+Math.min(45,m*2+m*m*0.15));}
+/* #4 COMPARAÇÃO DIRETA — radar de 7 eixos sobreposto */
+let RADMAX=1;try{W.forEach(w=>['s','p','b','y','x','t','k'].forEach(k=>{if(w[k]>RADMAX)RADMAX=w[k];}));}catch(e){RADMAX=100;}
+function radarSVG(a,b){
+  const AX=ABL,cx=180,cy=158,R=96,LR=116,N=AX.length,ang=i=>(-90+i*360/N)*Math.PI/180;
+  const P=(v,i)=>{const r=R*clamp2(v/RADMAX,0,1);return [cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];};
+  let grid='';[.25,.5,.75,1].forEach(f=>{let p='';for(let i=0;i<N;i++){const x=cx+R*f*Math.cos(ang(i)),y=cy+R*f*Math.sin(ang(i));p+=(i?' ':'')+x.toFixed(1)+','+y.toFixed(1);}grid+='<polygon points="'+p+'" fill="none" stroke="rgba(201,154,74,.15)" stroke-width="1"/>';});
+  let spk='',lab='';for(let i=0;i<N;i++){const x=cx+R*Math.cos(ang(i)),y=cy+R*Math.sin(ang(i));spk+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="rgba(201,154,74,.15)" stroke-width="1"/>';
+    const lx=cx+LR*Math.cos(ang(i)),ly=cy+LR*Math.sin(ang(i));lab+='<text x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="600" fill="var(--muted)">'+t(AX[i][0])+'</text>';}
+  const poly=(w,col,dash)=>{let p='',dots='';for(let i=0;i<N;i++){const q=P(w[AX[i][1]],i);p+=(i?' ':'')+q[0].toFixed(1)+','+q[1].toFixed(1);dots+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="3" fill="'+col+'"/>';}return '<polygon points="'+p+'" fill="'+col+'" fill-opacity="'+(dash?'.12':'.18')+'" stroke="'+col+'" stroke-width="2"'+(dash?' stroke-dasharray="5 4"':'')+'/>'+dots;};
+  const cA=ecol(a.e),cB=(a.e!==b.e)?ecol(b.e):'#59b0d9';
+  return '<div class="radarwrap"><div class="radar-h">'+t('Comparação direta')+'</div><svg viewBox="0 0 360 320" class="radar" role="img" aria-label="'+t('Comparação direta')+': '+a.n+' × '+b.n+'">'+grid+spk+poly(a,cA,false)+poly(b,cB,true)+lab+'</svg><div class="radar-leg"><span><i style="background:'+cA+'"></i>'+a.n.split(' ')[0]+'</span><span><i class="dash" style="border-color:'+cB+'"></i>'+b.n.split(' ')[0]+'</span></div></div>';
+}
+/* #3 FATOR SORTE — "E se?" cenário hipotético (não altera o veredito canônico nem o link) */
+const LUCK={
+ imp:[
+  {pt:'o sol bate nos olhos de {X} no instante decisivo',en:'the sun catches {X} in the eyes at the decisive instant',es:'el sol da en los ojos de {X} en el instante decisivo',ja:'決定的な一瞬、日差しが{X}の目を射る',fr:'le soleil aveugle {X} à l’instant décisif',it:'il sole colpisce gli occhi di {X} nell’istante decisivo'},
+  {pt:'o terreno irregular rouba o apoio de {X}',en:'the uneven ground robs {X} of footing',es:'el terreno irregular le roba el apoyo a {X}',ja:'不整地が{X}の足場を奪う',fr:'le terrain irrégulier fait perdre l’appui à {X}',it:'il terreno irregolare toglie l’appoggio a {X}'},
+  {pt:'a lâmina de {X} prende meio instante na bainha',en:'{X}’s blade snags for half an instant in the sheath',es:'la hoja de {X} se traba medio instante en la vaina',ja:'{X}の刃が半瞬、鞘に引っかかる',fr:'la lame de {X} accroche un demi-instant dans le fourreau',it:'la lama di {X} s’impiglia per un istante nel fodero'},
+  {pt:'uma rajada de vento desvia o golpe de {X}',en:'a gust of wind deflects {X}’s strike',es:'una ráfaga de viento desvía el golpe de {X}',ja:'突風が{X}の一撃を逸らす',fr:'une rafale de vent dévie le coup de {X}',it:'una raffica di vento devia il colpo di {X}'},
+  {pt:'o cansaço da jornada pesa no braço de {X}',en:'the road’s fatigue weighs on {X}’s arm',es:'el cansancio del camino pesa en el brazo de {X}',ja:'旅の疲れが{X}の腕に重くのしかかる',fr:'la fatigue de la route pèse sur le bras de {X}',it:'la stanchezza del viaggio pesa sul braccio di {X}'},
+  {pt:'uma finta inesperada quebra a leitura de {X}',en:'an unexpected feint breaks {X}’s read',es:'una finta inesperada rompe la lectura de {X}',ja:'不意のフェイントが{X}の読みを崩す',fr:'une feinte inattendue brise la lecture de {X}',it:'una finta inaspettata spezza la lettura di {X}'}
+ ],
+ upset:{pt:'{U} aproveita a brecha e vira o duelo — a zebra acontece.',en:'{U} seizes the opening and turns the duel — the upset lands.',es:'{U} aprovecha el hueco y da la vuelta al duelo — se da la sorpresa.',ja:'{U}が隙を突いて逆転——番狂わせが起きる。',fr:'{U} saisit l’ouverture et renverse le duel — la surprise a lieu.',it:'{U} sfrutta il varco e ribalta il duello — arriva la sorpresa.'},
+ hold:{pt:'{F} não se abala e confirma a vitória mesmo assim.',en:'{F} stays composed and confirms the win all the same.',es:'{F} no se inmuta y confirma la victoria igualmente.',ja:'それでも{F}は動じず勝利を確定させる。',fr:'{F} reste imperturbable et confirme la victoire malgré tout.',it:'{F} non si scompone e conferma comunque la vittoria.'}
+};
+function luckLine(o,subs){var s=(o&&(o[LANG]||o.pt))||'';for(var k in subs)s=s.split('{'+k+'}').join(subs[k]);return s;}
+function rollLuck(a,b,mode){
+  const r=resolve(a,b,mode),fav=r.winner,und=r.loser,zebra=100-winPct(r.margin);
+  const upset=Math.random()*100<zebra,afflicted=upset?fav:und;
+  const imp=LUCK.imp[Math.floor(Math.random()*LUCK.imp.length)];
+  return {upset:upset,zebra:zebra,
+    impTxt:luckLine(imp,{X:afflicted.n.split(' ')[0]}),
+    line:upset?luckLine(LUCK.upset,{U:und.n.split(' ')[0]}):luckLine(LUCK.hold,{F:fav.n.split(' ')[0]})};
+}
+function wireWhatif(scope,a,b,mode){
+  if(!scope)return;const btn=scope.querySelector('.whatifBtn'),out=scope.querySelector('.whatif-out');if(!btn)return;
+  btn.onclick=()=>{const res=rollLuck(a,b,mode);if(out){out.hidden=false;out.innerHTML='<div class="luckroll'+(res.upset?' upset':'')+'"><p class="luck-imp">🎲 '+res.impTxt+'.</p><p class="luck-res">'+res.line+'</p><p class="luck-note">'+t('Chance de zebra')+': '+res.zebra+'% · '+t('Cenário hipotético — não altera o veredito nem o link.')+'</p></div>';}btn.textContent='🎲 '+t('Rolar de novo');};
+}
 function buildBeats(a,b,r,mode){
   const Wn=r.winner,Ln=r.loser,beats=[];
   const clampMo=v=>Math.max(7,Math.min(93,v));let mo=50;
-  const wp=w=>wpnName(w),sc=w=>(mode==='war'?Math.round(w.bfx):w.ov);
+  const wp=w=>wpnName(w),sc=w=>(mode==='cav'?Math.round(w.cvx):mode==='war'?Math.round(w.bfx):w.ov);
   beats.push({mo:50,key:true,text:fillNarr('open',{A:a.n,B:b.n,eA:t(a.g),eB:t(b.g)}),detail:t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]});
   const order=[['p','Haste'],['b','Arco'],['s','Espada'],['y','Físico'],['k','Instinto'],['x','Experiência'],['t','Estratégia']];
   const tplFor=(k,lead)=>k==='p'?((lead.b>=lead.p&&lead.b>=80)?'arco':'reach'):k==='b'?'arco':k==='s'?'sword':k==='y'?'fis':k==='k'?'ins':k==='x'?'vet':'strat';
@@ -1543,7 +1601,7 @@ const ARENA='<div class="duelarena" aria-hidden="true"><svg viewBox="0 0 400 116
 +'<g transform="translate(311,0) scale(-1,1)"><g class="sil right" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
 +'<circle class="arena-spark" cx="200" cy="36" r="12" fill="rgba(255,220,130,.95)"/></svg></div>';
 function duelStage(a,b,mode){
-  return `<div class="duel setup">${fcard(a,false,mode)}<div class="mid"><span class="sw">${mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,false,mode)}</div>
+  return `<div class="duel setup">${fcard(a,false,mode)}<div class="mid"><span class="sw">${mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,false,mode)}</div>
    ${ARENA}
    <div class="duelplay">${tensBar(a,b,50)}
      <div class="narr" id="narr"><p class="muted narrhint">${t('Aperte “Assistir” e veja o duelo se desenrolar golpe a golpe.')}</p></div>
@@ -1560,16 +1618,19 @@ function duelVerdict(a,b,mode){
   const cmp=ABL.map(x=>{const av=a[x[1]],bv=b[x[1]],d=av-bv,w2=Math.min(Math.abs(d),40)/40*50;
     let fill=d>0?`left:${(50-w2).toFixed(1)}%;width:${w2.toFixed(1)}%;background:${ecol(a.e)}`:d<0?`left:50%;width:${w2.toFixed(1)}%;background:${ecol(b.e)}`:'left:50%;width:0';
     return `<div class="cmprow"><span class="la">${av}</span><span class="lab2">${t(x[0])}</span><span class="bar"><span class="md"></span><i style="${fill}"></i></span><span class="lb">${bv}</span></div>`;}).join('');
-  return `<div class="duel">${fcard(a,win===a,mode)}<div class="mid"><span class="sw">${mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,win===b,mode)}</div>
-   <div class="verdictline"><div class="cl">${t(ctag)} · ${t('margem')} ${r.margin.toFixed(1)} · ${t(mode==='war'?'campo de batalha':'duelo')}</div><div class="h">${t('Vence')}: ${win.n}</div><p style="margin:2px 0 0;font-size:.85rem;color:var(--muted)">${t(clab)}.</p><ul>${bullets.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+  return `<div class="duel">${fcard(a,win===a,mode)}<div class="mid"><span class="sw">${mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,win===b,mode)}</div>
+   <div class="verdictline"><div class="cl">${t(ctag)} · ${t('margem')} ${r.margin.toFixed(1)} · ${t(mode==='cav'?'a cavalo':mode==='war'?'campo de batalha':'duelo')}</div><div class="h">${t('Vence')}: ${win.n}</div><p style="margin:4px 0 2px;font-size:.94rem;font-weight:700;color:var(--accent)">${t('Chance de vitória')}: ${win.n.split(' ')[0]} ${winPct(r.margin)}% · ${los.n.split(' ')[0]} ${100-winPct(r.margin)}%</p><p style="margin:2px 0 0;font-size:.85rem;color:var(--muted)">${t(clab)}.</p><ul>${bullets.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+   ${radarSVG(a,b)}
    <div class="cmp"><div class="cmphead"><span class="a">${a.n.split(' ')[0]}</span><span>${t('atributo')}</span><span class="b">${b.n.split(' ')[0]}</span></div>${cmp}</div>
    <div class="steps"><h4>${t('Passo a passo do duelo')}</h4><ol>${beats.map(x=>`<li><span class="st-t">${x.text}</span>${x.detail?`<span class="st-d">${x.detail}</span>`:''}</li>`).join('')}</ol></div>
+   <div class="whatif"><button class="simbtn ghost whatifBtn">🎲 ${t('E se? Num dia de sorte')}</button><div class="whatif-out" hidden></div></div>
    <div class="sharebar"><button class="simbtn ghost" id="replayBtn">↻ ${t('Assistir de novo')}</button><button class="simbtn" id="dlBtn">📸 ${t('Baixar imagem')}</button><button class="simbtn ghost" id="linkBtn">🔗 ${t('Copiar link')}</button></div>`;
 }
 function wireShare(a,b){
   const rp=$('replayBtn');if(rp)rp.onclick=()=>{duelState.played=false;renderDuel();playDuel();};
   const dl=$('dlBtn');if(dl)dl.onclick=()=>shareCard(a,b,simMode);
   const lk=$('linkBtn');if(lk)lk.onclick=()=>copyDuelLink(a,b,simMode);
+  wireWhatif(fResult,a,b,simMode);
 }
 function showVerdict(a,b,mode){clearDuelTimers();duelState={played:true,a,b,mode};fResult.innerHTML=duelVerdict(a,b,mode);wireShare(a,b);}
 function playDuel(){
@@ -1620,7 +1681,7 @@ function renderDuel(){
 function dslug(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
 const SLUGMAP={};W.forEach(w=>{SLUGMAP[dslug(w.n)]=w.i;});
 function copyDuelLink(a,b,mode){
-  const url=location.origin+location.pathname+'?duelo='+dslug(a.n)+'-vs-'+dslug(b.n)+(mode==='war'?'&modo=guerra':'');
+  const url=location.origin+location.pathname+'?duelo='+dslug(a.n)+'-vs-'+dslug(b.n)+(mode==='war'?'&modo=guerra':mode==='cav'?'&modo=cavalo':'');
   const ok=()=>{const lk=$('linkBtn');if(lk){const o=lk.innerHTML;lk.innerHTML='✓ '+t('Link copiado!');setTimeout(()=>{lk.innerHTML=o;},1900);}};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(ok,()=>prompt(t('Copie o link:'),url));
   else prompt(t('Copie o link:'),url);
@@ -1630,16 +1691,19 @@ function cardText(c,txt,x,y,max,size,weight,color){c.fillStyle=color;c.font=weig
   let s=String(txt);if(c.measureText(s).width<=max){c.fillText(s,x,y);return;}let f=size;while(f>14&&c.measureText(s).width>max){f-=2;c.font=weight+' '+f+'px "Zen Kaku Gothic New",sans-serif';}c.fillText(s,x,y);}
 function cardTextL(c,txt,x,y,max,size,weight,color){c.fillStyle=color;c.textAlign='left';let f=size;c.font=weight+' '+f+'px "Zen Kaku Gothic New",sans-serif';const s=String(txt);while(f>12&&c.measureText(s).width>max){f--;c.font=weight+' '+f+'px "Zen Kaku Gothic New",sans-serif';}c.fillText(s,x,y);}
 function shareCard(a,b,mode){
-  const r=resolve(a,b,mode),win=r.winner,los=r.loser,cl=closeness(r.margin),sc=w=>(mode==='war'?Math.round(w.bfx):w.ov);
+  const r=resolve(a,b,mode),win=r.winner,los=r.loser,cl=closeness(r.margin),sc=w=>(mode==='cav'?Math.round(w.cvx):mode==='war'?Math.round(w.bfx):w.ov);
   const beats=buildBeats(a,b,r,mode).filter(x=>x.key);
   const _dl=$('dlBtn'),_dlo=_dl?_dl.innerHTML:'';const _restore=()=>{if(_dl){_dl.disabled=false;_dl.innerHTML=_dlo;}};if(_dl){_dl.disabled=true;_dl.innerHTML='⏳ …';}
-  const cw=1200,ch=1500,cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');
+  const cw=1200,cv=document.createElement('canvas');cv.width=cw;const c=cv.getContext('2d');
   const wrap=(txt,x,y,maxW,lineH,font,color,align)=>{c.font=font;c.fillStyle=color;c.textAlign=align||'left';const words=String(txt).split(' ');let line='',yy=y;for(const wd of words){const test=line?line+' '+wd:wd;if(c.measureText(test).width>maxW&&line){c.fillText(line,x,yy);line=wd;yy+=lineH;}else line=test;}if(line){c.fillText(line,x,yy);yy+=lineH;}return yy;};
+  const measL=(txt,maxW,font)=>{c.font=font;const words=String(txt).split(' ');let line='',n=1;for(const wd of words){const test=line?line+' '+wd:wd;if(c.measureText(test).width>maxW&&line){n++;line=wd;}else line=test;}return n;};
+  const _bw=cw-120;let _cH=0;beats.forEach(bt=>{_cH+=measL(bt.text,_bw-100,'500 20px "Zen Kaku Gothic New",sans-serif')*26;if(bt.detail)_cH+=measL(bt.detail,_bw-100,'400 15px "Zen Kaku Gothic New",sans-serif')*21+2;_cH+=15;});
+  const ch=592+50+_cH+34+58;cv.height=ch;
   const eC={1:'#4f7cac',2:'#3f8f7b',3:'#b5342a',4:'#5f6f97',5:'#b0862b'};
   c.fillStyle='#15120e';c.fillRect(0,0,cw,ch);
   c.strokeStyle='rgba(201,154,74,.55)';c.lineWidth=4;roundRect(c,16,16,cw-32,ch-32,18);c.stroke();
   c.fillStyle='#e6c778';c.textAlign='center';c.font='700 46px "Zen Old Mincho",serif';c.fillText('真剣勝負',cw/2,78);
-  c.fillStyle='#cbb892';c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.fillText('SHINKEN SHŌBU · '+(mode==='war'?t('campo de batalha'):t('duelo')).toUpperCase(),cw/2,112);
+  c.fillStyle='#cbb892';c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.fillText('SHINKEN SHŌBU · '+(mode==='cav'?t('a cavalo'):mode==='war'?t('campo de batalha'):t('duelo')).toUpperCase(),cw/2,112);
   const cols=[{w:a,x:300,col:eC[a.e]},{w:b,x:900,col:eC[b.e]}];
   const drawSide=(o,img)=>{const BW=232,BH=300,x=o.x-BW/2,y=150;
     c.save();roundRect(c,x,y,BW,BH,14);c.clip();
@@ -1649,7 +1713,7 @@ function shareCard(a,b,mode){
     c.restore();
     c.lineWidth=o.w===win?6:2;c.strokeStyle=o.w===win?'#e6c778':'rgba(255,255,255,.22)';roundRect(c,x,y,BW,BH,14);c.stroke();
     cardText(c,o.w.n,o.x,y+BH+42,340,30,'700','#f3ead5');
-    c.fillStyle=o.col;c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.textAlign='center';c.fillText(ERA[o.w.e].nm+' · '+(mode==='war'?Math.round(o.w.bfx):o.w.ov),o.x,y+BH+72);
+    c.fillStyle=o.col;c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.textAlign='center';c.fillText(ERA[o.w.e].nm+' · '+(mode==='cav'?Math.round(o.w.cvx):mode==='war'?Math.round(o.w.bfx):o.w.ov),o.x,y+BH+72);
     if(o.w===win){c.fillStyle='#e6c778';c.font='700 25px "Zen Kaku Gothic New",sans-serif';c.fillText('★ '+t('Vence'),o.x,y+BH+104);}
   };
   const load=src=>new Promise(res=>{if(!src){res(null);return;}const im=new Image();let d=false;const fin=v=>{if(!d){d=true;res(v);}};im.onload=()=>fin(im);im.onerror=()=>fin(null);setTimeout(()=>fin(null),3500);try{im.src=src;}catch(e){fin(null);}});
@@ -1657,11 +1721,14 @@ function shareCard(a,b,mode){
     drawSide(cols[0],imgs[0]);drawSide(cols[1],imgs[1]);
     c.textAlign='center';c.fillStyle='#e6c778';c.font='800 58px "Zen Old Mincho",serif';c.fillText('VS',cw/2,300);
     cardText(c,t(cl[0]),cw/2,344,300,22,'700','#e6c778');
-    const bx=60,by=600,bw=cw-120,bh=ch-by-78;
+    const bx=60,by=592,bw=cw-120,bh=ch-592-58;
     c.fillStyle='rgba(255,255,255,.04)';roundRect(c,bx,by,bw,bh,16);c.fill();
     c.strokeStyle='rgba(201,154,74,.3)';c.lineWidth=1.5;roundRect(c,bx,by,bw,bh,16);c.stroke();
     c.textAlign='left';c.fillStyle='#cbb892';c.font='700 18px "Zen Kaku Gothic New",sans-serif';
     c.fillText((t('A batalha, passo a passo')||'').toUpperCase()+'    ·    '+t('margem')+' '+r.margin.toFixed(1),bx+30,by+40);
+    c.textAlign='right';c.fillStyle='#e6c778';c.font='800 18px "Zen Kaku Gothic New",sans-serif';
+    c.fillText(win.n.split(' ')[0]+' '+winPct(r.margin)+'%  ·  '+los.n.split(' ')[0]+' '+(100-winPct(r.margin))+'%',bx+bw-30,by+40);
+    c.textAlign='left';
     let ly=by+86;
     for(let i=0;i<beats.length;i++){const bt=beats[i];if(ly>ch-98)break;
       c.fillStyle='#b5342a';c.beginPath();c.arc(bx+44,ly-6,13,0,Math.PI*2);c.fill();
@@ -1684,7 +1751,7 @@ document.querySelectorAll('.segbtn').forEach(btn=>{btn.onclick=()=>{simMode=btn.
 (function(){let autoplay=false;try{const q=new URLSearchParams(location.search),d=q.get('duelo');
   if(d&&d.indexOf('-vs-')>0){const parts=d.split('-vs-'),sa=parts[0],sb=parts.slice(1).join('-vs-');
     if(SLUGMAP[sa]!=null&&SLUGMAP[sb]!=null){comboA.set(SLUGMAP[sa]);comboB.set(SLUGMAP[sb]);
-      if(q.get('modo')==='guerra'){simMode='war';document.querySelectorAll('.segbtn').forEach(x=>x.classList.toggle('on',x.dataset.mode==='war'));renderModenote();}autoplay=true;}}}catch(e){}
+      var qm=q.get('modo');if(qm==='guerra'||qm==='cavalo'){simMode=qm==='cavalo'?'cav':'war';document.querySelectorAll('.modeseg:not(#titasseg) .segbtn').forEach(x=>x.classList.toggle('on',x.dataset.mode===simMode));renderModenote();}autoplay=true;}}}catch(e){}
   renderDuel();
   if(autoplay){const sec=$('simulador');if(sec)sec.scrollIntoView({behavior:'smooth'});duelTimers.push(setTimeout(()=>{if($('playBtn'))playDuel();},800));}
 })();
@@ -1696,11 +1763,11 @@ function matchModal(a,b,mode){
   let m=document.getElementById('duelModal');
   if(!m){m=document.createElement('div');m.id='duelModal';m.className='modal';m.innerHTML='<div class="mback"></div><div class="mcard duelmcard"><button class="x" aria-label="Fechar">✕</button><div class="mbody duelbody"></div></div>';document.body.appendChild(m);m.querySelector('.mback').onclick=closeDuelModal;m.querySelector('.x').onclick=closeDuelModal;}
   const body=m.querySelector('.duelbody');
-  const render=()=>{body.innerHTML='<div class="duel setup">'+fcard(a,false,mode)+'<div class="mid"><span class="sw">'+(mode==='war'?'🐎':'⚔️')+'</span><span class="vs">VS</span></div>'+fcard(b,false,mode)+'</div>'+ARENA+'<div class="duelplay">'+tensBar(a,b,50)+'<div class="narr"><p class="muted narrhint">'+t('Aperte “Assistir” e veja o duelo se desenrolar golpe a golpe.')+'</p></div><div class="duelctrl"><button class="playbtn dm-play">▶ '+t('Assistir o duelo')+'</button><button class="simbtn ghost dm-skip">'+t('Ver resultado')+' ⏭</button></div></div>';
+  const render=()=>{body.innerHTML='<div class="duel setup">'+fcard(a,false,mode)+'<div class="mid"><span class="sw">'+(mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️')+'</span><span class="vs">VS</span></div>'+fcard(b,false,mode)+'</div>'+ARENA+'<div class="duelplay">'+tensBar(a,b,50)+'<div class="narr"><p class="muted narrhint">'+t('Aperte “Assistir” e veja o duelo se desenrolar golpe a golpe.')+'</p></div><div class="duelctrl"><button class="playbtn dm-play">▶ '+t('Assistir o duelo')+'</button><button class="simbtn ghost dm-skip">'+t('Ver resultado')+' ⏭</button></div></div>';
     const pb=body.querySelector('.dm-play');if(pb)pb.onclick=animate;const sk=body.querySelector('.dm-skip');if(sk)sk.onclick=verdict;};
   const verdict=()=>{if(dmTimer)clearTimeout(dmTimer);body.innerHTML=duelVerdict(a,b,mode);
     const rp=body.querySelector('#replayBtn'),dl=body.querySelector('#dlBtn'),lk=body.querySelector('#linkBtn');
-    if(rp)rp.onclick=()=>{render();animate();};if(dl)dl.onclick=()=>shareCard(a,b,mode);if(lk)lk.onclick=()=>copyDuelLink(a,b,mode);};
+    if(rp)rp.onclick=()=>{render();animate();};if(dl)dl.onclick=()=>shareCard(a,b,mode);if(lk)lk.onclick=()=>copyDuelLink(a,b,mode);wireWhatif(body,a,b,mode);};
   const animate=()=>{
     const r=resolve(a,b,mode),beats=buildBeats(a,b,r,mode),anim=beats.filter(x=>x.key);
     const narr=body.querySelector('.narr'),ta=body.querySelector('.tens .ta'),tb=body.querySelector('.tens .tb'),ctrl=body.querySelector('.duelctrl'),duel=body.querySelector('.duel'),cards=duel?duel.querySelectorAll('.fighter'):[],cA=cards[0],cB=cards[1],mid=body.querySelector('.mid'),tens=body.querySelector('.tens'),ar=body.querySelector('.duelarena'),sL=ar&&ar.querySelector('.sil.left'),sR=ar&&ar.querySelector('.sil.right'),sp=ar&&ar.querySelector('.arena-spark');
@@ -1731,7 +1798,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=docum
 const TITANS=['Miyamoto Musashi','Honda Tadakatsu','Uesugi Kenshin','Takeda Shingen','Saitō Hajime','Nagakura Shinpachi','Tsukahara Bokuden','Sasaki Kojirō'];
 const TITLIST=TITANS.map(function(n){return byName[n]?W[byName[n].i]:null;}).filter(Boolean);
 let titasMode='duel';
-function knockoutM(list,mode){var sc=function(w){return mode==='war'?w.bfx:w.ovx;};var field=list.slice().sort(function(a,b){return sc(b)-sc(a)||a.n.localeCompare(b.n);});field.forEach(function(w,i){w._seed=i+1;});if(field.length<2)return{rounds:[],champ:field[0]||null};var pow2below=function(n){var p=1;while(p*2<=n)p*=2;return p;};var rounds=[],cur=field;while(cur.length>1){var size=cur.length,isPow=(Math.log2(size)%1===0),target=isPow?size/2:pow2below(size),nm2=size-target;var byes=cur.slice(0,size-2*nm2),fs=cur.slice(size-2*nm2);var matches=[],winners=[],i=0,j=fs.length-1;while(i<j){var a=fs[i],b=fs[j],w=resolve(a,b,mode).winner;matches.push({a:a,b:b,w:w});winners.push(w);i++;j--;}rounds.push({size:size,target:target,matches:matches,byes:byes.length});cur=byes.concat(winners).sort(function(x,y){return sc(y)-sc(x)||x.n.localeCompare(y.n);});}return{rounds:rounds,champ:cur[0]};}
+function knockoutM(list,mode){var sc=function(w){return mode==='cav'?w.cvx:mode==='war'?w.bfx:w.ovx;};var field=list.slice().sort(function(a,b){return sc(b)-sc(a)||a.n.localeCompare(b.n);});field.forEach(function(w,i){w._seed=i+1;});if(field.length<2)return{rounds:[],champ:field[0]||null};var pow2below=function(n){var p=1;while(p*2<=n)p*=2;return p;};var rounds=[],cur=field;while(cur.length>1){var size=cur.length,isPow=(Math.log2(size)%1===0),target=isPow?size/2:pow2below(size),nm2=size-target;var byes=cur.slice(0,size-2*nm2),fs=cur.slice(size-2*nm2);var matches=[],winners=[],i=0,j=fs.length-1;while(i<j){var a=fs[i],b=fs[j],w=resolve(a,b,mode).winner;matches.push({a:a,b:b,w:w});winners.push(w);i++;j--;}rounds.push({size:size,target:target,matches:matches,byes:byes.length});cur=byes.concat(winners).sort(function(x,y){return sc(y)-sc(x)||x.n.localeCompare(y.n);});}return{rounds:rounds,champ:cur[0]};}
 function renderTitas(){var res;try{res=knockoutM(TITLIST,titasMode);}catch(e){res={rounds:[],champ:null};}var el=$('titasrounds');if(el)el.innerHTML=bracketHTML(res);var m=$('titasmeta');if(m&&res.champ&&res.rounds.length){var fm=res.rounds[res.rounds.length-1].matches[0];var ru=fm.a===res.champ?fm.b:fm.a;m.innerHTML='<span><b>'+TITLIST.length+'</b> '+t('titãs')+'</span><span>·</span><span>'+t(titasMode==='war'?'campo de batalha':'duelo')+'</span><span>·</span><span>'+t('Campeão')+': <b>'+res.champ.n+'</b></span><span>·</span><span>'+t('Vice')+': '+ru.n+'</span>';}
   var seg=document.querySelectorAll('#titasseg .segbtn');seg.forEach(function(bt){bt.classList.toggle('on',bt.dataset.mode===titasMode);bt.textContent=(bt.dataset.mode==='war'?'🐎 ':'⚔️ ')+t(bt.dataset.mode==='war'?'Campo de batalha':'Duelo');});}
 (function(){var seg=document.getElementById('titasseg');if(seg)seg.addEventListener('click',function(e){var b=e.target.closest('.segbtn');if(!b)return;titasMode=b.dataset.mode;renderTitas();});renderTitas();})();
@@ -2071,6 +2138,16 @@ function t(s){if(LANG==='pt'||s==null)return s;const e=TR[s];return (e&&e[LANG])
  'titãs':{en:'titans',es:'titanes',ja:'巨人',fr:'titans',it:'titani'},
  'Vice':{en:'Runner-up',es:'Subcampeón',ja:'準優勝',fr:'Finaliste',it:'Vicecampione'},
  'A batalha, passo a passo':{en:'The battle, blow by blow',es:'La batalla, paso a paso',ja:'戦いの一部始終',fr:'Le combat, coup par coup',it:'La battaglia, colpo per colpo'},
+ 'Chance de vitória':{en:'Win chance',es:'Probabilidad de victoria',ja:'勝率',fr:'Chance de victoire',it:'Probabilità di vittoria'},
+ 'Comparação direta':{en:'Head-to-head',es:'Comparación directa',ja:'直接比較',fr:'Comparaison directe',it:'Confronto diretto'},
+ 'E se? Num dia de sorte':{en:'What if? On a lucky day',es:'¿Y si? En un día de suerte',ja:'もしも？ 運のいい日なら',fr:'Et si ? Un jour de chance',it:'E se? In un giorno fortunato'},
+ 'Rolar de novo':{en:'Roll again',es:'Tirar de nuevo',ja:'もう一度振る',fr:'Relancer',it:'Tira di nuovo'},
+ 'Chance de zebra':{en:'Upset chance',es:'Probabilidad de sorpresa',ja:'番狂わせの確率',fr:'Chance de surprise',it:'Probabilità di sorpresa'},
+ 'Cenário hipotético — não altera o veredito nem o link.':{en:'Hypothetical scenario — it changes neither the verdict nor the link.',es:'Escenario hipotético — no altera el veredicto ni el enlace.',ja:'仮想シナリオ——判定もリンクも変わらない。',fr:'Scénario hypothétique — il ne change ni le verdict ni le lien.',it:'Scenario ipotetico — non altera né il verdetto né il link.'},
+ 'A cavalo':{en:'Mounted',es:'A caballo',ja:'騎馬',fr:'À cheval',it:'A cavallo'},
+ 'nota a cavalo':{en:'mounted score',es:'nota a caballo',ja:'騎馬スコア',fr:'note à cheval',it:'punteggio a cavallo'},
+ 'a cavalo':{en:'mounted',es:'a caballo',ja:'騎馬',fr:'à cheval',it:'a cavallo'},
+ 'A cavalo: o alcance da lança e do arco domina; a esgrima a pé quase não conta — combate montado e blindado.':{en:'Mounted: spear and bow reach dominate; on-foot fencing barely counts — armored, mounted combat.',es:'A caballo: el alcance de la lanza y el arco domina; la esgrima a pie casi no cuenta — combate montado y blindado.',ja:'騎馬：槍と弓の間合いが支配し、徒歩の剣術はほとんど意味を持たない——甲冑の騎馬戦。',fr:'À cheval : l’allonge de la lance et de l’arc domine ; l’escrime à pied ne compte presque pas — combat monté et cuirassé.',it:'A cavallo: l’allungo della lancia e dell’arco domina; la scherma a piedi quasi non conta — combattimento montato e corazzato.'},
  'Chave dos Titãs — as lendas frente a frente':{en:'The Titans Bracket — legends face to face',es:'La Llave de los Titanes — las leyendas frente a frente',ja:'巨人たちのトーナメント——伝説の対決',fr:'Le Tableau des Titans — les légendes face à face',it:'Il Tabellone dei Titani — le leggende faccia a faccia'},
  'Oito nomes eternos em eliminatória única, semeados pela nota de duelo — Musashi, Bokuden, Honda Tadakatsu, a rivalidade de Kawanakajima e os sabres do Shinsengumi, todos pela mesma engine. O caminho dourado é o do campeão.':{en:'Eight eternal names in a single-elimination bracket, seeded by duel score — Musashi, Bokuden, Honda Tadakatsu, the Kawanakajima rivalry and the blades of the Shinsengumi, all through the same engine. The golden path is the champion’s.',es:'Ocho nombres eternos en eliminación simple, sembrados por la nota de duelo — Musashi, Bokuden, Honda Tadakatsu, la rivalidad de Kawanakajima y los sables del Shinsengumi, todos por el mismo motor. El camino dorado es el del campeón.',ja:'決闘スコアでシードされた単純トーナメントの永遠の8名——武蔵、卜伝、本多忠勝、川中島の宿敵、そして新選組の剣——すべて同じエンジンで。金の道が優勝者の軌跡だ。',fr:'Huit noms éternels en élimination directe, classés par note de duel — Musashi, Bokuden, Honda Tadakatsu, la rivalité de Kawanakajima et les lames du Shinsengumi, tous par le même moteur. Le chemin doré est celui du champion.',it:'Otto nomi eterni in eliminazione diretta, teste di serie per punteggio di duello — Musashi, Bokuden, Honda Tadakatsu, la rivalità di Kawanakajima e le lame dello Shinsengumi, tutti con lo stesso motore. Il percorso dorato è quello del campione.'}
 };for(var k in X){if(TR[k]){for(var l in X[k])TR[k][l]=X[k][l];}else TR[k]=X[k];}})();
@@ -2086,7 +2163,7 @@ try{for(var k in IT_SEC){if(SEC[k])SEC[k].it=IT_SEC[k];}}catch(e){}
 try{for(var k in IT_TR){if(TR[k])TR[k].it=IT_TR[k];else TR[k]={it:IT_TR[k]};}}catch(e){}
 })();
 
-function renderModenote(){const el=$('modenote');if(el)el.textContent=t(simMode==='war'?'Campo de batalha: alcance, físico e experiência pesam mais e a esgrima fina vale menos — a guerra, com armadura e montaria.':'Duelo 1×1 a pé, sem armadura — a esgrima manda.');}
+function renderModenote(){const el=$('modenote');if(el)el.textContent=t(simMode==='cav'?'A cavalo: o alcance da lança e do arco domina; a esgrima a pé quase não conta — combate montado e blindado.':simMode==='war'?'Campo de batalha: alcance, físico e experiência pesam mais e a esgrima fina vale menos — a guerra, com armadura e montaria.':'Duelo 1×1 a pé, sem armadura — a esgrima manda.');}
 function stampProse(){document.querySelectorAll('#ranking p.muted,#torneio p.muted,#simulador p.muted,#metodo .prose p,#metodo figcaption,#metodo h3,.verdict-card p,.verdict-card .eyebrow,.verdict-card .who,section h3,section h4,.callout h4,footer p,footer .serif,.node.grp .lbl').forEach(el=>{if(el.dataset.pt!==undefined)return;const key=el.children.length?el.innerHTML.trim():el.textContent.trim();if(TR[key])el.dataset.pt=(el.children.length?'H:':'T:')+key;});}
 function applyStatic(){
  const set=(sel,val,html)=>{const el=document.querySelector(sel);if(el&&val!=null){if(html)el.innerHTML=val;else el.textContent=val;}};
@@ -2100,7 +2177,7 @@ function applyStatic(){
  document.querySelectorAll('.i18n[data-k]').forEach(el=>{el.textContent=t(el.dataset.k);});
  const setBtn=(id,emoji,key)=>{const b=$(id);if(b)b.textContent=(emoji?emoji+' ':'')+t(key);};
  setBtn('cAdd','+','Adicionar');setBtn('cRand8','🎲','8 aleatórios');setBtn('cClear','','Limpar');setBtn('cSim','⚔️','Simular chave');setBtn('fRand','🎲','Aleatório');setBtn('treeExpand','','Expandir tudo');setBtn('treeCollapse','','Recolher tudo');
- const segs=document.querySelectorAll('.segbtn');if(segs[0])segs[0].textContent='⚔️ '+t('Duelo');if(segs[1])segs[1].textContent='🐎 '+t('Campo de batalha');
+ document.querySelectorAll('.modeseg:not(#titasseg) .segbtn').forEach(function(bt){var m=bt.dataset.mode;bt.textContent=(m==='cav'?'🏇 '+t('A cavalo'):m==='war'?'🐎 '+t('Campo de batalha'):'⚔️ '+t('Duelo'));});
  const allBtn=document.querySelector('.fbtn[data-era="0"]');if(allBtn)allBtn.textContent=t('Todas');
  document.querySelectorAll('.comboinput').forEach((inp,i)=>inp.placeholder=t(i<2?'Buscar samurai…':'Buscar e adicionar…'));
  const ts=$('treeSearch');if(ts)ts.placeholder=t('Buscar guerreiro (ex.: Saitō, Okita, Musashi)…');
