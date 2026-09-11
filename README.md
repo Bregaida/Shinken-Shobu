@@ -6,7 +6,7 @@
 [![Site](https://img.shields.io/badge/site-no_ar-2ea44f?style=flat-square)](https://bregaida.github.io/Shinken-Shobu/)
 [![Licença: MIT](https://img.shields.io/badge/license-MIT-1f6feb?style=flat-square)](LICENSE)
 ![Guerreiros](https://img.shields.io/badge/guerreiros-~147-b8860b?style=flat-square)
-![Idiomas](https://img.shields.io/badge/idiomas-5-orange?style=flat-square)
+![Idiomas](https://img.shields.io/badge/idiomas-6-orange?style=flat-square)
 
 **🔗 Acesse o simulador:** **https://bregaida.github.io/Shinken-Shobu/**
 
@@ -30,7 +30,7 @@ Nada de lendas nem habilidades mágicas. Cada guerreiro é avaliado pelas suas c
 - 📜 **Ficha de cada guerreiro** — breve histórico, técnicas, armas usadas, retrato histórico e o emblema (*kamon*) do clã
 - 🗡️ **Arsenal** — 12 armas com fotos reais, nomes corretos em japonês e ficha de atributos; a ficha de cada guerreiro leva direto à sua arma principal
 - ☯️ **Modo Duelo ou Campo de batalha** — o mesmo confronto muda de resultado quando o que está em jogo é a honra individual ou a guerra
-- 🌗 **Tema claro/escuro** e **5 idiomas**
+- 🌗 **Tema claro/escuro** e **6 idiomas**
 
 ## Como funciona a engine
 
@@ -42,7 +42,7 @@ O modo **Campo de batalha** reequilibra tudo: alcance, disciplina de formação 
 
 ## Idiomas
 
-Interface e análises disponíveis em **Português · English · Español · 日本語 · Français**, selecionáveis no topo da página.
+Interface e análises disponíveis em **Português · English · Español · 日本語 · Français · Italiano**, selecionáveis no topo da página.
 
 ## Imagens e fontes
 
