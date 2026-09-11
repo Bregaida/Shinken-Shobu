@@ -1486,7 +1486,8 @@ function wpnName(w){try{return WEAPONS[primaryWeapon(w)].nome;}catch(e){return t
 
 /* narração: modelos com marcadores {A} {B} {X} {Y} {W} {L} {w} */
 const NARR={
- open:{pt:'As lâminas deixam a bainha. De um lado, {A}; do outro, {B}. Sem armadura, sem montaria — só técnica.',en:'The blades leave their sheaths. On one side, {A}; on the other, {B}. No armor, no horse — only skill.',es:'Las hojas salen de la vaina. De un lado, {A}; del otro, {B}. Sin armadura, sin montura — solo técnica.',ja:'刃が鞘を離れる。一方に{A}、もう一方に{B}。鎧なし、馬なし——技のみ。',fr:'Les lames quittent le fourreau. D’un côté, {A} ; de l’autre, {B}. Sans armure, sans monture — rien que la technique.',it:'Le lame lasciano il fodero. Da un lato {A}, dall’altro {B}. Senza armatura, senza cavallo — solo tecnica.'},
+ open:{pt:'As lâminas deixam a bainha. {A} ({eA}) contra {B} ({eB}) — sem armadura, sem montaria, só técnica.',en:'The blades leave their sheaths. {A} ({eA}) against {B} ({eB}) — no armor, no horse, only skill.',es:'Las hojas salen de la vaina. {A} ({eA}) contra {B} ({eB}) — sin armadura, sin montura, solo técnica.',ja:'刃が鞘を離れる。{A}（{eA}）対{B}（{eB}）——鎧なし、馬なし、技のみ。',fr:'Les lames quittent le fourreau. {A} ({eA}) contre {B} ({eB}) — sans armure, sans monture, rien que la technique.',it:'Le lame lasciano il fodero. {A} ({eA}) contro {B} ({eB}) — senza armatura, senza cavallo, solo tecnica.'},
+ tecnica:{pt:'{X} impõe o estilo do {e}.',en:'{X} imposes the {e} style.',es:'{X} impone el estilo del {e}.',ja:'{X}が{e}の型を押し通す。',fr:'{X} impose le style du {e}.',it:'{X} impone lo stile del {e}.'},
  reach:{pt:'{X} controla a distância com {w}: cada passo de {Y} custa caro.',en:'{X} controls the distance with {w}: every step {Y} takes is costly.',es:'{X} controla la distancia con {w}: cada paso de {Y} sale caro.',ja:'{X}は{w}で間合いを支配し、{Y}の一歩ごとに代償を強いる。',fr:'{X} contrôle la distance avec {w} : chaque pas de {Y} coûte cher.',it:'{X} controlla la distanza con {w}: ogni passo di {Y} si paga caro.'},
  arco:{pt:'{X} abre com o arco e força {Y} a avançar sob a mira.',en:'{X} opens with the bow, forcing {Y} to advance under aim.',es:'{X} abre con el arco y obliga a {Y} a avanzar bajo la mira.',ja:'{X}は弓で先手を取り、{Y}を狙いの下で前進させる。',fr:'{X} ouvre à l’arc et force {Y} à avancer sous la visée.',it:'{X} apre con l’arco e costringe {Y} ad avanzare sotto tiro.'},
  sword:{pt:'{X} é mais limpo no aço — {w} encontra as aberturas de {Y}.',en:'{X} is cleaner with steel — {w} finds {Y}’s openings.',es:'{X} es más limpio con el acero — {w} encuentra los huecos de {Y}.',ja:'{X}の刃さばきがより鋭く、{w}が{Y}の隙を突く。',fr:'{X} est plus net à l’acier — {w} trouve les ouvertures de {Y}.',it:'{X} è più pulito con l’acciaio — {w} trova le aperture di {Y}.'},
@@ -1509,7 +1510,7 @@ function buildBeats(a,b,r,mode){
   const Wn=r.winner,Ln=r.loser,beats=[];
   const clampMo=v=>Math.max(7,Math.min(93,v));let mo=50;
   const wp=w=>wpnName(w),sc=w=>(mode==='war'?Math.round(w.bfx):w.ov);
-  beats.push({mo:50,key:true,text:fillNarr('open',{A:a.n,B:b.n}),detail:t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]});
+  beats.push({mo:50,key:true,text:fillNarr('open',{A:a.n,B:b.n,eA:t(a.g),eB:t(b.g)}),detail:t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]});
   const order=[['p','Haste'],['b','Arco'],['s','Espada'],['y','Físico'],['k','Instinto'],['x','Experiência'],['t','Estratégia']];
   const tplFor=(k,lead)=>k==='p'?((lead.b>=lead.p&&lead.b>=80)?'arco':'reach'):k==='b'?'arco':k==='s'?'sword':k==='y'?'fis':k==='k'?'ins':k==='x'?'vet':'strat';
   const usedTpl={},axisBeats=[];
@@ -1521,6 +1522,7 @@ function buildBeats(a,b,r,mode){
     beats.push({mo:mo,key:key3.indexOf(ab)>=0,text:fillNarr(ab.tpl,{X:ab.lead.n,Y:ab.other.n,w:wp(ab.lead)}),detail:t(ab.lab)+': '+a[ab.k]+' × '+b[ab.k]});});
   if(!axisBeats.length)beats.push({mo:mo,key:true,text:fillNarr('even',{}),detail:t('Equilíbrio quase total nos atributos')});
   if(r.margin<3){mo=clampMo(mo+(Ln===a?1:-1)*6);beats.push({mo:mo,key:true,text:fillNarr('swing',{X:Ln.n,Y:Wn.n}),detail:t('Reação do adversário — o duelo fica no fio')});}
+  if(Wn.g)beats.push({mo:mo,key:true,text:fillNarr('tecnica',{X:Wn.n,e:t(Wn.g)}),detail:Wn.tec?t(Wn.tec):''});
   const AX=['s','p','b','y','x','t','k'],fmap={s:'finSword',p:'finReach',b:'finArch',y:'finPress',k:'finPress',t:'finStrat',x:'finStrat'};
   let fK='s',fD=-99;AX.forEach(k=>{const d=Wn[k]-Ln[k];if(d>fD){fD=d;fK=k;}});
   const finalMo=50+(Wn===a?1:-1)*Math.min(43,10+r.margin*4);
@@ -1629,43 +1631,46 @@ function cardText(c,txt,x,y,max,size,weight,color){c.fillStyle=color;c.font=weig
 function cardTextL(c,txt,x,y,max,size,weight,color){c.fillStyle=color;c.textAlign='left';let f=size;c.font=weight+' '+f+'px "Zen Kaku Gothic New",sans-serif';const s=String(txt);while(f>12&&c.measureText(s).width>max){f--;c.font=weight+' '+f+'px "Zen Kaku Gothic New",sans-serif';}c.fillText(s,x,y);}
 function shareCard(a,b,mode){
   const r=resolve(a,b,mode),win=r.winner,los=r.loser,cl=closeness(r.margin),sc=w=>(mode==='war'?Math.round(w.bfx):w.ov);
-  const edges=ABL.map(x=>({l:t(x[0]),d:win[x[1]]-los[x[1]]})).filter(e=>e.d>=3).sort((p,q)=>q.d-p.d).slice(0,4).map(e=>e.l+' +'+e.d);
-  let bullets=[t('Nota base')+': '+a.n.split(' ')[0]+' '+sc(a)+' × '+sc(b)+' '+b.n.split(' ')[0]];
-  r.reasons.forEach(x=>{const s=t(x);bullets.push(s.charAt(0).toUpperCase()+s.slice(1));});
-  if(edges.length)bullets.push(t('Vantagem de atributo:')+' '+edges.join(', '));
-  bullets=bullets.slice(0,3);
+  const beats=buildBeats(a,b,r,mode).filter(x=>x.key);
   const _dl=$('dlBtn'),_dlo=_dl?_dl.innerHTML:'';const _restore=()=>{if(_dl){_dl.disabled=false;_dl.innerHTML=_dlo;}};if(_dl){_dl.disabled=true;_dl.innerHTML='⏳ …';}
-  const cw=1200,ch=630,cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');
+  const cw=1200,ch=1500,cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');
+  const wrap=(txt,x,y,maxW,lineH,font,color,align)=>{c.font=font;c.fillStyle=color;c.textAlign=align||'left';const words=String(txt).split(' ');let line='',yy=y;for(const wd of words){const test=line?line+' '+wd:wd;if(c.measureText(test).width>maxW&&line){c.fillText(line,x,yy);line=wd;yy+=lineH;}else line=test;}if(line){c.fillText(line,x,yy);yy+=lineH;}return yy;};
   const eC={1:'#4f7cac',2:'#3f8f7b',3:'#b5342a',4:'#5f6f97',5:'#b0862b'};
   c.fillStyle='#15120e';c.fillRect(0,0,cw,ch);
   c.strokeStyle='rgba(201,154,74,.55)';c.lineWidth=4;roundRect(c,16,16,cw-32,ch-32,18);c.stroke();
-  c.fillStyle='#e6c778';c.textAlign='center';c.font='700 38px "Zen Old Mincho",serif';c.fillText('真剣勝負',cw/2,60);
-  c.fillStyle='#cbb892';c.font='600 19px "Zen Kaku Gothic New",sans-serif';c.fillText('SHINKEN SHŌBU · '+(mode==='war'?t('campo de batalha'):t('duelo')).toUpperCase(),cw/2,86);
-  const cols=[{w:a,x:250,col:eC[a.e]},{w:b,x:950,col:eC[b.e]}];
-  const drawSide=(o,img)=>{const BW=182,BH=218,x=o.x-BW/2,y=98;
+  c.fillStyle='#e6c778';c.textAlign='center';c.font='700 46px "Zen Old Mincho",serif';c.fillText('真剣勝負',cw/2,78);
+  c.fillStyle='#cbb892';c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.fillText('SHINKEN SHŌBU · '+(mode==='war'?t('campo de batalha'):t('duelo')).toUpperCase(),cw/2,112);
+  const cols=[{w:a,x:300,col:eC[a.e]},{w:b,x:900,col:eC[b.e]}];
+  const drawSide=(o,img)=>{const BW=232,BH=300,x=o.x-BW/2,y=150;
     c.save();roundRect(c,x,y,BW,BH,14);c.clip();
     c.fillStyle='#221d16';c.fillRect(x,y,BW,BH);
-    if(img){const sc=Math.min(BW/img.width,BH/img.height),dw=img.width*sc,dh=img.height*sc;c.drawImage(img,o.x-dw/2,y+BH/2-dh/2,dw,dh);}
-    else{c.fillStyle=o.col;c.font='700 92px "Zen Old Mincho",serif';c.textAlign='center';c.fillText((o.w.n[0]||'?'),o.x,y+BH/2+32);}
+    if(img){const sc2=Math.min(BW/img.width,BH/img.height),dw=img.width*sc2,dh=img.height*sc2;c.drawImage(img,o.x-dw/2,y+BH/2-dh/2,dw,dh);}
+    else{c.fillStyle=o.col;c.font='700 110px "Zen Old Mincho",serif';c.textAlign='center';c.fillText((o.w.n[0]||'?'),o.x,y+BH/2+38);}
     c.restore();
     c.lineWidth=o.w===win?6:2;c.strokeStyle=o.w===win?'#e6c778':'rgba(255,255,255,.22)';roundRect(c,x,y,BW,BH,14);c.stroke();
-    cardText(c,o.w.n,o.x,y+BH+32,300,26,'700','#f3ead5');
-    c.fillStyle=o.col;c.font='600 19px "Zen Kaku Gothic New",sans-serif';c.textAlign='center';c.fillText(ERA[o.w.e].nm+' · '+(mode==='war'?Math.round(o.w.bfx):o.w.ov),o.x,y+BH+58);
-    if(o.w===win){c.fillStyle='#e6c778';c.font='700 23px "Zen Kaku Gothic New",sans-serif';c.fillText('★ '+t('Vence'),o.x,y+BH+88);}
+    cardText(c,o.w.n,o.x,y+BH+42,340,30,'700','#f3ead5');
+    c.fillStyle=o.col;c.font='600 21px "Zen Kaku Gothic New",sans-serif';c.textAlign='center';c.fillText(ERA[o.w.e].nm+' · '+(mode==='war'?Math.round(o.w.bfx):o.w.ov),o.x,y+BH+72);
+    if(o.w===win){c.fillStyle='#e6c778';c.font='700 25px "Zen Kaku Gothic New",sans-serif';c.fillText('★ '+t('Vence'),o.x,y+BH+104);}
   };
   const load=src=>new Promise(res=>{if(!src){res(null);return;}const im=new Image();let d=false;const fin=v=>{if(!d){d=true;res(v);}};im.onload=()=>fin(im);im.onerror=()=>fin(null);setTimeout(()=>fin(null),3500);try{im.src=src;}catch(e){fin(null);}});
   Promise.all([load(SIMG[a.n]),load(SIMG[b.n])]).then(imgs=>{
     drawSide(cols[0],imgs[0]);drawSide(cols[1],imgs[1]);
-    c.textAlign='center';c.fillStyle='#e6c778';c.font='800 50px "Zen Old Mincho",serif';c.fillText('VS',cw/2,198);
-    cardText(c,t(cl[0]),cw/2,238,300,22,'700','#e6c778');
-    const by=428,bh=148;
-    c.fillStyle='rgba(255,255,255,.045)';roundRect(c,60,by,cw-120,bh,14);c.fill();
-    c.strokeStyle='rgba(201,154,74,.32)';c.lineWidth=1.5;roundRect(c,60,by,cw-120,bh,14);c.stroke();
-    c.textAlign='left';c.fillStyle='#cbb892';c.font='700 16px "Zen Kaku Gothic New",sans-serif';
-    c.fillText((t('Como foi decidido')||'').toUpperCase()+'    ·    '+t('margem')+' '+r.margin.toFixed(1),88,by+30);
-    let ly=by+62;
-    bullets.forEach(bt=>{c.textAlign='left';c.fillStyle='#e6c778';c.font='700 20px "Zen Kaku Gothic New",sans-serif';c.fillText('•',88,ly);cardTextL(c,bt,110,ly,cw-230,19,'500','#efe6d4');ly+=32;});
-    c.textAlign='center';c.fillStyle='rgba(230,199,120,.9)';c.font='500 18px "Zen Kaku Gothic New",sans-serif';c.fillText('bregaida.github.io/Shinken-Shobu · Criado por Eduardo Bregaida',cw/2,ch-24);
+    c.textAlign='center';c.fillStyle='#e6c778';c.font='800 58px "Zen Old Mincho",serif';c.fillText('VS',cw/2,300);
+    cardText(c,t(cl[0]),cw/2,344,300,22,'700','#e6c778');
+    const bx=60,by=600,bw=cw-120,bh=ch-by-78;
+    c.fillStyle='rgba(255,255,255,.04)';roundRect(c,bx,by,bw,bh,16);c.fill();
+    c.strokeStyle='rgba(201,154,74,.3)';c.lineWidth=1.5;roundRect(c,bx,by,bw,bh,16);c.stroke();
+    c.textAlign='left';c.fillStyle='#cbb892';c.font='700 18px "Zen Kaku Gothic New",sans-serif';
+    c.fillText((t('A batalha, passo a passo')||'').toUpperCase()+'    ·    '+t('margem')+' '+r.margin.toFixed(1),bx+30,by+40);
+    let ly=by+86;
+    for(let i=0;i<beats.length;i++){const bt=beats[i];if(ly>ch-98)break;
+      c.fillStyle='#b5342a';c.beginPath();c.arc(bx+44,ly-6,13,0,Math.PI*2);c.fill();
+      c.fillStyle='#fff';c.textAlign='center';c.font='700 15px "Zen Kaku Gothic New",sans-serif';c.fillText(String(i+1),bx+44,ly);
+      let ny=wrap(bt.text,bx+72,ly,bw-100,26,'500 20px "Zen Kaku Gothic New",sans-serif','#efe6d4','left');
+      if(bt.detail)ny=wrap(bt.detail,bx+72,ny+1,bw-100,21,'400 15px "Zen Kaku Gothic New",sans-serif','#9c927f','left');
+      ly=ny+15;
+    }
+    c.textAlign='center';c.fillStyle='rgba(230,199,120,.9)';c.font='500 19px "Zen Kaku Gothic New",sans-serif';c.fillText('bregaida.github.io/Shinken-Shobu · Criado por Eduardo Bregaida',cw/2,ch-38);
     cv.toBlob(blob=>{_restore();if(!blob)return;const fname='shinken-shobu-duelo.png';try{const file=new File([blob],fname,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Shinken Shōbu',text:t('Quem venceria este duelo?')}).catch(()=>{});return;}}catch(e){}
       const url=URL.createObjectURL(blob),A=document.createElement('a');A.href=url;A.download=fname;document.body.appendChild(A);A.click();A.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);},'image/png');
   });
@@ -2065,6 +2070,7 @@ function t(s){if(LANG==='pt'||s==null)return s;const e=TR[s];return (e&&e[LANG])
  'Equilíbrio quase total nos atributos':{en:'Nearly even across the board',es:'Equilibrio casi total en los atributos',ja:'能力値はほぼ互角',fr:'Attributs presque à égalité',it:'Attributi quasi in parità'},
  'titãs':{en:'titans',es:'titanes',ja:'巨人',fr:'titans',it:'titani'},
  'Vice':{en:'Runner-up',es:'Subcampeón',ja:'準優勝',fr:'Finaliste',it:'Vicecampione'},
+ 'A batalha, passo a passo':{en:'The battle, blow by blow',es:'La batalla, paso a paso',ja:'戦いの一部始終',fr:'Le combat, coup par coup',it:'La battaglia, colpo per colpo'},
  'Chave dos Titãs — as lendas frente a frente':{en:'The Titans Bracket — legends face to face',es:'La Llave de los Titanes — las leyendas frente a frente',ja:'巨人たちのトーナメント——伝説の対決',fr:'Le Tableau des Titans — les légendes face à face',it:'Il Tabellone dei Titani — le leggende faccia a faccia'},
  'Oito nomes eternos em eliminatória única, semeados pela nota de duelo — Musashi, Bokuden, Honda Tadakatsu, a rivalidade de Kawanakajima e os sabres do Shinsengumi, todos pela mesma engine. O caminho dourado é o do campeão.':{en:'Eight eternal names in a single-elimination bracket, seeded by duel score — Musashi, Bokuden, Honda Tadakatsu, the Kawanakajima rivalry and the blades of the Shinsengumi, all through the same engine. The golden path is the champion’s.',es:'Ocho nombres eternos en eliminación simple, sembrados por la nota de duelo — Musashi, Bokuden, Honda Tadakatsu, la rivalidad de Kawanakajima y los sables del Shinsengumi, todos por el mismo motor. El camino dorado es el del campeón.',ja:'決闘スコアでシードされた単純トーナメントの永遠の8名——武蔵、卜伝、本多忠勝、川中島の宿敵、そして新選組の剣——すべて同じエンジンで。金の道が優勝者の軌跡だ。',fr:'Huit noms éternels en élimination directe, classés par note de duel — Musashi, Bokuden, Honda Tadakatsu, la rivalité de Kawanakajima et les lames du Shinsengumi, tous par le même moteur. Le chemin doré est celui du champion.',it:'Otto nomi eterni in eliminazione diretta, teste di serie per punteggio di duello — Musashi, Bokuden, Honda Tadakatsu, la rivalità di Kawanakajima e le lame dello Shinsengumi, tutti con lo stesso motore. Il percorso dorato è quello del campione.'}
 };for(var k in X){if(TR[k]){for(var l in X[k])TR[k][l]=X[k][l];}else TR[k]=X[k];}})();
