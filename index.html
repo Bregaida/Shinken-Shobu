@@ -598,6 +598,41 @@
 .luckroll.upset .luck-res{color:#d8544a}
 .luck-note{margin:0;font-size:.78rem;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.radarwrap,.luckroll{animation:none!important}}
+/* ---- animação estilo anime: corte, linhas de velocidade, flash, kanji, aura ---- */
+.duelarena{position:relative;overflow:visible}
+.fx-slash,.fx-speed,.fx-flash{position:absolute;inset:0;pointer-events:none}
+.fx-slash{overflow:hidden}
+.fx-slash::before{content:"";position:absolute;top:-25%;left:0;width:46%;height:150%;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,244,214,.9),#fff,rgba(255,244,214,.85),transparent);
+  filter:blur(.6px);transform:translateX(-180%) rotate(17deg)}
+.fx-slash.go.ltr::before{animation:slashLTR .32s ease-out}
+.fx-slash.go.rtl::before{animation:slashRTL .32s ease-out}
+@keyframes slashLTR{0%{transform:translateX(-180%) rotate(17deg);opacity:0}15%{opacity:1}82%{opacity:1}100%{transform:translateX(320%) rotate(17deg);opacity:0}}
+@keyframes slashRTL{0%{transform:translateX(320%) rotate(-17deg);opacity:0}15%{opacity:1}82%{opacity:1}100%{transform:translateX(-180%) rotate(-17deg);opacity:0}}
+.fx-speed{opacity:0;color:var(--ink);background:repeating-conic-gradient(from 0deg at 50% 32%,transparent 0deg,transparent 3.2deg,currentColor 3.2deg,transparent 4.2deg);
+  -webkit-mask:radial-gradient(circle at 50% 32%,transparent 26%,#000 74%);mask:radial-gradient(circle at 50% 32%,transparent 26%,#000 74%)}
+.fx-speed.go{animation:speedFlash .3s ease-out}
+@keyframes speedFlash{0%{opacity:0;transform:scale(1.18)}30%{opacity:.5}100%{opacity:0;transform:scale(1)}}
+.fx-flash{opacity:0;background:radial-gradient(circle at 50% 34%,rgba(255,255,255,.98),rgba(255,236,192,.72) 38%,rgba(255,255,255,0) 72%)}
+.fx-flash.go{animation:flashFrame .34s ease-out}
+@keyframes flashFrame{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+.fx-kanji{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) scale(.35) rotate(-9deg);z-index:5;
+  font-family:"Zen Old Mincho",serif;font-weight:800;font-size:clamp(48px,13vw,74px);color:#f7ecd0;letter-spacing:4px;opacity:0;pointer-events:none;
+  text-shadow:0 0 12px rgba(181,52,42,.95),0 3px 5px rgba(0,0,0,.6)}
+.fx-kanji::before{content:"";position:absolute;inset:-40% -55%;z-index:-1;border-radius:50%;background:radial-gradient(circle,rgba(181,52,42,.4),transparent 62%)}
+.fx-kanji.go{animation:kanjiStamp 1.05s cubic-bezier(.2,1.35,.3,1) both}
+@keyframes kanjiStamp{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-11deg)}22%{opacity:1;transform:translate(-50%,-50%) scale(1.14) rotate(-4deg)}38%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}84%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.03) rotate(-4deg)}}
+.duelarena.hitstop{animation:hitstop .5s ease-out}
+@keyframes hitstop{0%{transform:scale(1)}8%{transform:scale(1.06)}22%{transform:scale(1.03)}100%{transform:scale(1)}}
+.duel .fighter.victor,.duel .fighter.win{position:relative}
+.duel .fighter.victor::after,.duel .fighter.win::after{content:"";position:absolute;inset:-7px;border-radius:16px;pointer-events:none;z-index:-1;
+  background:radial-gradient(circle at 50% 42%,rgba(230,199,120,.55),transparent 68%);animation:auraPulse 1.5s ease-in-out infinite}
+@keyframes auraPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.85;transform:scale(1.045)}}
+@media (prefers-reduced-motion:reduce){
+ .fx-slash::before,.fx-speed,.fx-flash,.fx-kanji{animation:none!important;opacity:0!important}
+ .duelarena.hitstop{animation:none!important}
+ .duel .fighter.victor::after,.duel .fighter.win::after{animation:none!important;opacity:.38}
+}
 
 </style>
 
@@ -1582,9 +1617,10 @@ function buildBeats(a,b,r,mode){
   if(r.margin<3){mo=clampMo(mo+(Ln===a?1:-1)*6);beats.push({mo:mo,key:true,text:fillNarr('swing',{X:Ln.n,Y:Wn.n}),detail:t('Reação do adversário — o duelo fica no fio')});}
   if(Wn.g)beats.push({mo:mo,key:true,text:fillNarr('tecnica',{X:Wn.n,e:t(Wn.g)}),detail:Wn.tec?t(Wn.tec):''});
   const AX=['s','p','b','y','x','t','k'],fmap={s:'finSword',p:'finReach',b:'finArch',y:'finPress',k:'finPress',t:'finStrat',x:'finStrat'};
+  const KAN={s:'一閃',p:'制',b:'射',y:'圧',k:'圧',t:'謀',x:'謀'};
   let fK='s',fD=-99;AX.forEach(k=>{const d=Wn[k]-Ln[k];if(d>fD){fD=d;fK=k;}});
   const finalMo=50+(Wn===a?1:-1)*Math.min(43,10+r.margin*4);
-  beats.push({mo:clampMo(finalMo),key:true,fin:true,text:fillNarr(fmap[fK],{W:Wn.n,L:Ln.n,w:wp(Wn)}),detail:t('margem')+' '+r.margin.toFixed(1)+' · '+t(closeness(r.margin)[0])});
+  beats.push({mo:clampMo(finalMo),key:true,fin:true,kanji:KAN[fK]||'一閃',text:fillNarr(fmap[fK],{W:Wn.n,L:Ln.n,w:wp(Wn)}),detail:t('margem')+' '+r.margin.toFixed(1)+' · '+t(closeness(r.margin)[0])});
   return beats;
 }
 function tensBar(a,b,moA){return `<div class="tens" aria-hidden="true"><i class="ta" style="width:${moA}%;background:${ecol(a.e)}"></i><i class="tb" style="width:${100-moA}%;background:${ecol(b.e)}"></i><span class="tmid"></span></div>`;}
@@ -1599,7 +1635,11 @@ const ARENA='<div class="duelarena" aria-hidden="true"><svg viewBox="0 0 400 116
 +'<g class="ground"><ellipse cx="130" cy="110" rx="33" ry="4"/><ellipse cx="270" cy="110" rx="33" ry="4"/></g>'
 +'<g transform="translate(89,0)"><g class="sil left" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
 +'<g transform="translate(311,0) scale(-1,1)"><g class="sil right" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
-+'<circle class="arena-spark" cx="200" cy="36" r="12" fill="rgba(255,220,130,.95)"/></svg></div>';
++'<circle class="arena-spark" cx="200" cy="36" r="12" fill="rgba(255,220,130,.95)"/></svg>'
++'<i class="fx-slash"></i><i class="fx-speed"></i><i class="fx-flash"></i><div class="fx-kanji"></div></div>';
+function fxSlash(ar,dir){if(!ar)return;const s=ar.querySelector('.fx-slash');if(!s)return;s.classList.remove('go','ltr','rtl');void s.offsetWidth;s.classList.add('go',dir>=0?'ltr':'rtl');}
+function fxSpeed(ar){if(!ar)return;const s=ar.querySelector('.fx-speed');if(!s)return;s.classList.remove('go');void s.offsetWidth;s.classList.add('go');}
+function fxFinish(ar,kanji){if(!ar)return;const f=ar.querySelector('.fx-flash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}const k=ar.querySelector('.fx-kanji');if(k){k.textContent=kanji||'一閃';k.classList.remove('go');void k.offsetWidth;k.classList.add('go');}ar.classList.remove('hitstop');void ar.offsetWidth;ar.classList.add('hitstop');}
 function duelStage(a,b,mode){
   return `<div class="duel setup">${fcard(a,false,mode)}<div class="mid"><span class="sw">${mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,false,mode)}</div>
    ${ARENA}
@@ -1661,10 +1701,11 @@ function playDuel(){
           if(dir>0.4){silL.classList.add('lunge');silR.classList.add('recoil');}else if(dir<-0.4){silR.classList.add('lunge');silL.classList.add('recoil');}}
       }
       fx(mid,'clash');fx(tens,'pulse');fxs(spark,'flash');shakeIt(bt.fin);
+      fxSlash(arena,dir);if(Math.abs(dir)>=1.8||bt.fin)fxSpeed(arena);
       if(bt.fin){
         const wc=r.winner===a?cardA:cardB,lc=r.winner===a?cardB:cardA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}
         const wS=r.winner===a?silL:silR,lS=r.winner===a?silR:silL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}
-        fx(duelEl,'finish');
+        fxFinish(arena,bt.kanji);fx(duelEl,'finish');
       }
     }
     i++;duelTimers.push(setTimeout(step,reduce?0:2000));
@@ -1786,7 +1827,8 @@ function matchModal(a,b,mode){
         if(!bt.fin){if(cA&&cB){cA.classList.remove('lunge','recoil');cB.classList.remove('lunge','recoil');void cA.offsetWidth;if(dir>0.4){cA.classList.add('lunge');cB.classList.add('recoil');}else if(dir<-0.4){cB.classList.add('lunge');cA.classList.add('recoil');}}
           if(sL&&sR){sL.classList.remove('lunge','recoil');sR.classList.remove('lunge','recoil');sL.getBoundingClientRect();if(dir>0.4){sL.classList.add('lunge');sR.classList.add('recoil');}else if(dir<-0.4){sR.classList.add('lunge');sL.classList.add('recoil');}}}
         fx(mid,'clash');fx(tens,'pulse');fxs(sp,'flash');if(duel){duel.classList.remove('shake','shake-hard');void duel.offsetWidth;duel.classList.add(bt.fin?'shake-hard':'shake');}
-        if(bt.fin){const wc=r.winner===a?cA:cB,lc=r.winner===a?cB:cA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}const wS=r.winner===a?sL:sR,lS=r.winner===a?sR:sL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}fx(duel,'finish');}}
+        fxSlash(ar,dir);if(Math.abs(dir)>=1.8||bt.fin)fxSpeed(ar);
+        if(bt.fin){const wc=r.winner===a?cA:cB,lc=r.winner===a?cB:cA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}const wS=r.winner===a?sL:sR,lS=r.winner===a?sR:sL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}fxFinish(ar,bt.kanji);fx(duel,'finish');}}
       i++;dmTimer=setTimeout(step,reduce?0:2000);
     };step();
   };
