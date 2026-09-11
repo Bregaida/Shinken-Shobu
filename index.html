@@ -534,17 +534,25 @@
 .arena-svg .sil.right.lunge{animation:silLungeR .5s cubic-bezier(.4,1.4,.5,1)}
 .arena-svg .sil.left.recoil{animation:silRecoilL .5s ease}
 .arena-svg .sil.right.recoil{animation:silRecoilR .5s ease}
-.arena-svg .sil.down{opacity:.4;transition:opacity .6s}
-@keyframes silLungeL{0%{transform:none}30%{transform:translateX(24px) rotate(7deg) scale(1.05)}55%{transform:translateX(14px) rotate(3deg)}100%{transform:none}}
-@keyframes silLungeR{0%{transform:none}30%{transform:translateX(-24px) rotate(-7deg) scale(1.05)}55%{transform:translateX(-14px) rotate(-3deg)}100%{transform:none}}
-@keyframes silRecoilL{0%,100%{transform:none}40%{transform:translateX(-13px) rotate(-4deg)}}
-@keyframes silRecoilR{0%,100%{transform:none}40%{transform:translateX(13px) rotate(4deg)}}
-.arena-svg .sil.down{animation:silFall .7s ease forwards!important}
-@keyframes silFall{to{opacity:.32;transform:translateY(7px) rotate(-7deg)}}
+/* passada com recuo de preparo antes da estocada (movimento aprimorado) */
+@keyframes silLungeL{0%{transform:none}13%{transform:translateX(-6px) rotate(-3deg)}40%{transform:translateX(29px) rotate(9deg) scale(1.06)}62%{transform:translateX(15px) rotate(4deg)}100%{transform:none}}
+@keyframes silLungeR{0%{transform:none}13%{transform:translateX(6px) rotate(3deg)}40%{transform:translateX(-29px) rotate(-9deg) scale(1.06)}62%{transform:translateX(-15px) rotate(-4deg)}100%{transform:none}}
+@keyframes silRecoilL{0%,100%{transform:none}30%{transform:translateX(-16px) rotate(-6deg)}58%{transform:translateX(-7px) rotate(-2deg)}}
+@keyframes silRecoilR{0%,100%{transform:none}30%{transform:translateX(16px) rotate(6deg)}58%{transform:translateX(7px) rotate(2deg)}}
+/* rastro na ponta da lâmina durante o corte */
+.arena-svg .btrail{fill:none;stroke:rgba(255,240,205,.95);stroke-width:2.4;stroke-linecap:round;opacity:0;stroke-dasharray:64;stroke-dashoffset:64;filter:drop-shadow(0 0 3px rgba(255,220,140,.85))}
+.arena-svg .sil.lunge .btrail{animation:btrail .5s ease-out}
+@keyframes btrail{0%{opacity:0;stroke-dashoffset:64}22%{opacity:1}55%{opacity:.9;stroke-dashoffset:0}100%{opacity:0;stroke-dashoffset:-24}}
+/* queda: o perdedor tomba para o próprio lado, girando nos pés */
+.arena-svg .sil.down{opacity:.4}
+.arena-svg .sil.left.down{animation:silFallL .8s ease forwards!important}
+.arena-svg .sil.right.down{animation:silFallR .8s ease forwards!important}
+@keyframes silFallL{0%{transform:none}28%{transform:translateY(1px) rotate(-6deg)}100%{opacity:.3;transform:translateY(9px) rotate(-27deg)}}
+@keyframes silFallR{0%{transform:none}28%{transform:translateY(1px) rotate(6deg)}100%{opacity:.3;transform:translateY(9px) rotate(27deg)}}
 .arena-svg .arena-spark{transform-box:fill-box;transform-origin:center;opacity:0;filter:drop-shadow(0 0 5px rgba(255,205,100,.9))}
 .arena-svg .arena-spark.flash{animation:arenaSpark .5s ease-out}
 @keyframes arenaSpark{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.1);opacity:0}}
-@media (prefers-reduced-motion:reduce){.arena-svg .sil,.arena-svg .arena-spark{animation:none!important}.duelarena{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.arena-svg .sil,.arena-svg .arena-spark,.arena-svg .btrail{animation:none!important}.arena-svg .btrail{opacity:0!important}.duelarena{opacity:.5}}
 /* ---- passo a passo no veredito ---- */
 .steps{margin:16px 0 4px}
 .steps h4{margin:0 0 9px;font-size:.95rem}
@@ -1633,8 +1641,8 @@ const ARENA='<div class="duelarena" aria-hidden="true"><svg viewBox="0 0 400 116
 +'<path d="M81,49 L114,32 L116,35 L83,53 Z"/>'
 +'</g></defs>'
 +'<g class="ground"><ellipse cx="130" cy="110" rx="33" ry="4"/><ellipse cx="270" cy="110" rx="33" ry="4"/></g>'
-+'<g transform="translate(89,0)"><g class="sil left" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
-+'<g transform="translate(311,0) scale(-1,1)"><g class="sil right" fill="currentColor"><use href="#skenshu-bushi"/></g></g>'
++'<g transform="translate(89,0)"><g class="sil left" fill="currentColor"><use href="#skenshu-bushi"/><path class="btrail" d="M95,55 Q123,33 118,25"/></g></g>'
++'<g transform="translate(311,0) scale(-1,1)"><g class="sil right" fill="currentColor"><use href="#skenshu-bushi"/><path class="btrail" d="M95,55 Q123,33 118,25"/></g></g>'
 +'<circle class="arena-spark" cx="200" cy="36" r="12" fill="rgba(255,220,130,.95)"/></svg>'
 +'<i class="fx-slash"></i><i class="fx-speed"></i><i class="fx-flash"></i><div class="fx-kanji"></div></div>';
 function fxSlash(ar,dir){if(!ar)return;const s=ar.querySelector('.fx-slash');if(!s)return;s.classList.remove('go','ltr','rtl');void s.offsetWidth;s.classList.add('go',dir>=0?'ltr':'rtl');}
