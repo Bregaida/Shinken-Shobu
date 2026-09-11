@@ -726,6 +726,7 @@
     <div class="gbwrap"><div class="gbmeta" id="gbmeta"></div><div class="gbscroll"><div class="gbrounds" id="gbrounds"></div></div></div>
     <h3 class="serif" id="titas" style="margin:42px 0 4px;font-size:1.25rem;scroll-margin-top:72px">Chave dos Titãs — as lendas frente a frente</h3>
     <p class="muted" style="font-size:.9rem;margin-top:0;max-width:70ch">Oito nomes eternos em eliminatória única, semeados pela nota de duelo — Musashi, Bokuden, Honda Tadakatsu, a rivalidade de Kawanakajima e os sabres do Shinsengumi, todos pela mesma engine. O caminho dourado é o do campeão.</p>
+    <div class="modeseg" id="titasseg" role="group" aria-label="Modo de combate" style="margin:10px 0 12px"><button class="segbtn on" data-mode="duel">⚔️ Duelo</button><button class="segbtn" data-mode="war">🐎 Campo de batalha</button></div>
     <div class="gbwrap"><div class="gbmeta" id="titasmeta"></div><div class="gbscroll"><div class="gbrounds" id="titasrounds"></div></div></div>
   </section>
 
@@ -1698,13 +1699,16 @@ function matchModal(a,b,mode){
   };
   render();m.hidden=false;document.body.style.overflow='hidden';
 }
-document.addEventListener('click',function(e){var pb=e.target.closest&&e.target.closest('.gmplay');if(pb){e.preventDefault();e.stopPropagation();var da=+pb.getAttribute('data-ma'),db=+pb.getAttribute('data-mb');if(!isNaN(da)&&!isNaN(db))matchModal(W[da],W[db],'duel');}});
+document.addEventListener('click',function(e){var pb=e.target.closest&&e.target.closest('.gmplay');if(pb){e.preventDefault();e.stopPropagation();var da=+pb.getAttribute('data-ma'),db=+pb.getAttribute('data-mb');var mode=(pb.closest('#titasrounds')&&typeof titasMode!=='undefined')?titasMode:'duel';if(!isNaN(da)&&!isNaN(db))matchModal(W[da],W[db],mode);}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('duelModal');if(m&&!m.hidden)closeDuelModal();}});
-/* ---- Chave dos Titãs ---- */
+/* ---- Chave dos Titãs (modo Duelo / Campo de batalha) ---- */
 const TITANS=['Miyamoto Musashi','Honda Tadakatsu','Uesugi Kenshin','Takeda Shingen','Saitō Hajime','Nagakura Shinpachi','Tsukahara Bokuden','Sasaki Kojirō'];
-const TITRES=(function(){try{return knockout(TITANS.map(function(n){return byName[n]?W[byName[n].i]:null;}).filter(Boolean));}catch(e){return{rounds:[],champ:null};}})();
-function renderTitas(){var el=$('titasrounds');if(el)el.innerHTML=bracketHTML(TITRES);var m=$('titasmeta');if(m&&TITRES.champ){var fm=TITRES.rounds[TITRES.rounds.length-1].matches[0];var ru=fm.a===TITRES.champ?fm.b:fm.a;m.innerHTML='<span><b>'+TITANS.length+'</b> '+t('titãs')+'</span><span>·</span><span>'+t('Campeão')+': <b>'+TITRES.champ.n+'</b></span><span>·</span><span>'+t('Vice')+': '+ru.n+'</span>';}}
-renderTitas();
+const TITLIST=TITANS.map(function(n){return byName[n]?W[byName[n].i]:null;}).filter(Boolean);
+let titasMode='duel';
+function knockoutM(list,mode){var sc=function(w){return mode==='war'?w.bfx:w.ovx;};var field=list.slice().sort(function(a,b){return sc(b)-sc(a)||a.n.localeCompare(b.n);});field.forEach(function(w,i){w._seed=i+1;});if(field.length<2)return{rounds:[],champ:field[0]||null};var pow2below=function(n){var p=1;while(p*2<=n)p*=2;return p;};var rounds=[],cur=field;while(cur.length>1){var size=cur.length,isPow=(Math.log2(size)%1===0),target=isPow?size/2:pow2below(size),nm2=size-target;var byes=cur.slice(0,size-2*nm2),fs=cur.slice(size-2*nm2);var matches=[],winners=[],i=0,j=fs.length-1;while(i<j){var a=fs[i],b=fs[j],w=resolve(a,b,mode).winner;matches.push({a:a,b:b,w:w});winners.push(w);i++;j--;}rounds.push({size:size,target:target,matches:matches,byes:byes.length});cur=byes.concat(winners).sort(function(x,y){return sc(y)-sc(x)||x.n.localeCompare(y.n);});}return{rounds:rounds,champ:cur[0]};}
+function renderTitas(){var res;try{res=knockoutM(TITLIST,titasMode);}catch(e){res={rounds:[],champ:null};}var el=$('titasrounds');if(el)el.innerHTML=bracketHTML(res);var m=$('titasmeta');if(m&&res.champ&&res.rounds.length){var fm=res.rounds[res.rounds.length-1].matches[0];var ru=fm.a===res.champ?fm.b:fm.a;m.innerHTML='<span><b>'+TITLIST.length+'</b> '+t('titãs')+'</span><span>·</span><span>'+t(titasMode==='war'?'campo de batalha':'duelo')+'</span><span>·</span><span>'+t('Campeão')+': <b>'+res.champ.n+'</b></span><span>·</span><span>'+t('Vice')+': '+ru.n+'</span>';}
+  var seg=document.querySelectorAll('#titasseg .segbtn');seg.forEach(function(bt){bt.classList.toggle('on',bt.dataset.mode===titasMode);bt.textContent=(bt.dataset.mode==='war'?'🐎 ':'⚔️ ')+t(bt.dataset.mode==='war'?'Campo de batalha':'Duelo');});}
+(function(){var seg=document.getElementById('titasseg');if(seg)seg.addEventListener('click',function(e){var b=e.target.closest('.segbtn');if(!b)return;titasMode=b.dataset.mode;renderTitas();});renderTitas();})();
 /* #3 revelar chaves ao entrar na tela (Grande Chave, Titãs, round de 16, chave montada) */
 (function(){try{
   const io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('reveal');});},{threshold:.08});
