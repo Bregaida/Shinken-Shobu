@@ -445,7 +445,8 @@
 .tens .tmid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;transform:translateX(-1px);background:var(--ink);opacity:.3}
 .narr{margin:13px 0 4px;min-height:50px;display:flex;flex-direction:column;gap:8px}
 .narr .nbeat{margin:0;padding:9px 13px;border-radius:9px;background:rgba(127,127,127,.10);border-left:3px solid var(--accent);font-size:.95rem;line-height:1.5;opacity:0;transform:translateY(7px);transition:opacity .45s ease,transform .45s ease}
-.narr .nbeat.in{opacity:1;transform:none}
+.narr .nbeat.in{animation:beatIn .5s cubic-bezier(.2,.9,.3,1.35) forwards}
+@keyframes beatIn{0%{opacity:0;transform:translateY(8px) scale(.985)}60%{opacity:1;transform:translateY(0) scale(1.012)}100%{opacity:1;transform:none}}
 .narr .nbeat.fin{font-weight:700;background:rgba(181,52,42,.12);border-left-width:4px}
 .narrhint{margin:0!important;font-size:.87rem}
 .duelctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
@@ -472,6 +473,8 @@
 .duel .mid{position:relative}
 .duel .mid.clash::after{content:"";position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:radial-gradient(circle,rgba(255,226,140,.95),rgba(255,150,60,.35) 45%,transparent 70%);animation:clashF .5s ease-out;pointer-events:none}
 @keyframes clashF{0%{opacity:0;transform:scale(.2)}30%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+.duel .mid.clash::before{content:"";position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px solid rgba(255,224,150,.92);animation:clashRing .55s ease-out;pointer-events:none;z-index:1}
+@keyframes clashRing{0%{opacity:.9;transform:scale(.35)}100%{opacity:0;transform:scale(3)}}
 .duel.shake{animation:shk .34s ease}
 .duel.shake-hard{animation:shkH .5s ease}
 @keyframes shk{0%,100%{transform:none}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
@@ -532,13 +535,15 @@
 .arena-svg .sil.left.recoil{animation:silRecoilL .5s ease}
 .arena-svg .sil.right.recoil{animation:silRecoilR .5s ease}
 .arena-svg .sil.down{opacity:.4;transition:opacity .6s}
-@keyframes silLungeL{0%,100%{transform:none}45%{transform:translateX(16px) rotate(4deg)}}
-@keyframes silLungeR{0%,100%{transform:none}45%{transform:translateX(-16px) rotate(-4deg)}}
-@keyframes silRecoilL{0%,100%{transform:none}45%{transform:translateX(-10px) rotate(-3deg)}}
-@keyframes silRecoilR{0%,100%{transform:none}45%{transform:translateX(10px) rotate(3deg)}}
-.arena-svg .arena-spark{transform-box:fill-box;transform-origin:center;opacity:0}
-.arena-svg .arena-spark.flash{animation:arenaSpark .45s ease-out}
-@keyframes arenaSpark{0%{transform:scale(.1);opacity:0}30%{opacity:1}100%{transform:scale(1.9);opacity:0}}
+@keyframes silLungeL{0%{transform:none}30%{transform:translateX(24px) rotate(7deg) scale(1.05)}55%{transform:translateX(14px) rotate(3deg)}100%{transform:none}}
+@keyframes silLungeR{0%{transform:none}30%{transform:translateX(-24px) rotate(-7deg) scale(1.05)}55%{transform:translateX(-14px) rotate(-3deg)}100%{transform:none}}
+@keyframes silRecoilL{0%,100%{transform:none}40%{transform:translateX(-13px) rotate(-4deg)}}
+@keyframes silRecoilR{0%,100%{transform:none}40%{transform:translateX(13px) rotate(4deg)}}
+.arena-svg .sil.down{animation:silFall .7s ease forwards!important}
+@keyframes silFall{to{opacity:.32;transform:translateY(7px) rotate(-7deg)}}
+.arena-svg .arena-spark{transform-box:fill-box;transform-origin:center;opacity:0;filter:drop-shadow(0 0 5px rgba(255,205,100,.9))}
+.arena-svg .arena-spark.flash{animation:arenaSpark .5s ease-out}
+@keyframes arenaSpark{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.arena-svg .sil,.arena-svg .arena-spark{animation:none!important}.duelarena{opacity:.5}}
 /* ---- passo a passo no veredito ---- */
 .steps{margin:16px 0 4px}
@@ -559,6 +564,22 @@
 .duelmcard{max-width:660px}
 .duelbody{padding:2px}
 .duelbody .duel{margin-top:4px}
+/* ---- entrada dramática do veredito ---- */
+.verdictline{animation:vIn .5s ease both}
+@keyframes vIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.duel .fighter.win{animation:winIn .6s cubic-bezier(.2,.9,.3,1.25) both}
+@keyframes winIn{0%{opacity:.45;transform:scale(.9)}55%{transform:scale(1.05)}100%{opacity:1;transform:none}}
+.steps ol li{animation:stIn .45s ease both}
+.steps ol li:nth-child(1){animation-delay:.03s}
+.steps ol li:nth-child(2){animation-delay:.09s}
+.steps ol li:nth-child(3){animation-delay:.15s}
+.steps ol li:nth-child(4){animation-delay:.21s}
+.steps ol li:nth-child(5){animation-delay:.27s}
+.steps ol li:nth-child(6){animation-delay:.33s}
+.steps ol li:nth-child(7){animation-delay:.39s}
+.steps ol li:nth-child(n+8){animation-delay:.45s}
+@keyframes stIn{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.verdictline,.duel .fighter.win,.steps ol li{animation:none!important}}
 
 </style>
 
