@@ -661,6 +661,9 @@
 @keyframes redHold{0%{opacity:0}12%{opacity:1}74%{opacity:1}100%{opacity:0}}
 @keyframes redDraw{0%{transform:translateY(-50%) rotate(-25deg) scaleX(0)}20%{transform:translateY(-50%) rotate(-25deg) scaleX(1)}100%{transform:translateY(-50%) rotate(-25deg) scaleX(1)}}
 @media (prefers-reduced-motion:reduce){.arena-svg .sil.iaiL,.arena-svg .sil.iaiR,.arena-svg .ghost,.fx-kime,.fx-redslash{animation:none!important;opacity:0!important}}
+/* ---- banner do "E se? Num dia de sorte" (re-simulação hipotética) ---- */
+.luckbanner{text-align:center;font-weight:700;font-size:.86rem;letter-spacing:.01em;padding:8px 14px;border-radius:10px;margin:0 0 12px;background:rgba(230,199,120,.14);border:1px solid var(--line);color:var(--accent);animation:vIn .4s ease both}
+.luckbanner.upset{background:rgba(181,52,42,.13);color:#d8544a;border-color:rgba(181,52,42,.38)}
 
 </style>
 
@@ -1629,7 +1632,7 @@ function wireWhatif(scope,a,b,mode){
   if(!scope)return;const btn=scope.querySelector('.whatifBtn'),out=scope.querySelector('.whatif-out');if(!btn)return;
   btn.onclick=()=>{const res=rollLuck(a,b,mode);if(out){out.hidden=false;out.innerHTML='<div class="luckroll'+(res.upset?' upset':'')+'"><p class="luck-imp">🎲 '+res.impTxt+'.</p><p class="luck-res">'+res.line+'</p><p class="luck-note">'+t('Chance de zebra')+': '+res.zebra+'% · '+t('Cenário hipotético — não altera o veredito nem o link.')+'</p></div>';}btn.textContent='🎲 '+t('Rolar de novo');};
 }
-function buildBeats(a,b,r,mode){
+function buildBeats(a,b,r,mode,luck){
   const Wn=r.winner,Ln=r.loser,beats=[];
   const clampMo=v=>Math.max(7,Math.min(93,v));let mo=50;
   const wp=w=>wpnName(w),sc=w=>(mode==='cav'?Math.round(w.cvx):mode==='war'?Math.round(w.bfx):w.ov);
@@ -1647,6 +1650,7 @@ function buildBeats(a,b,r,mode){
   if(!axisBeats.length)beats.push({mo:mo,key:true,text:fillNarr('even',{}),detail:t('Equilíbrio quase total nos atributos')});
   if(r.margin<3){mo=clampMo(mo+(Ln===a?1:-1)*6);beats.push({mo:mo,key:true,text:fillNarr('swing',{X:Ln.n,Y:Wn.n}),detail:t('Reação do adversário — o duelo fica no fio')});}
   if(Wn.g)beats.push({mo:mo,key:true,text:fillNarr('tecnica',{X:Wn.n,e:t(Wn.g)}),detail:Wn.tec?t(Wn.tec):''});
+  if(luck&&luck.imp){const afflicted=luck.upset?luck.fav:luck.und;beats.push({mo:clampMo(mo+(luck.upset?(Ln===a?1:-1):(Wn===a?1:-1))*7),key:true,text:'🎲 '+luckLine(luck.imp,{X:afflicted.n.split(' ')[0]}),detail:t(luck.upset?'O imprevisto abre a guarda — a zebra ganha corpo':'O imprevisto testa o favorito, que não cede')});}
   const AX=['s','p','b','y','x','t','k'],fmap={s:'finSword',p:'finReach',b:'finArch',y:'finPress',k:'finPress',t:'finStrat',x:'finStrat'};
   const KAN={s:'一閃',p:'制',b:'射',y:'圧',k:'圧',t:'謀',x:'謀'};
   let fK='s',fD=-99;AX.forEach(k=>{const d=Wn[k]-Ln[k];if(d>fD){fD=d;fK=k;}});
@@ -1710,9 +1714,64 @@ function wireShare(a,b){
   const rp=$('replayBtn');if(rp)rp.onclick=()=>{duelState.played=false;renderDuel();playDuel();};
   const dl=$('dlBtn');if(dl)dl.onclick=()=>shareCard(a,b,simMode);
   const lk=$('linkBtn');if(lk)lk.onclick=()=>copyDuelLink(a,b,simMode);
-  wireWhatif(fResult,a,b,simMode);
+  const wf=fResult.querySelector('.whatifBtn');if(wf)wf.onclick=()=>playLucky(a,b,simMode);
 }
 function showVerdict(a,b,mode){clearDuelTimers();duelState={played:true,a,b,mode};fResult.innerHTML=duelVerdict(a,b,mode);wireShare(a,b);}
+/* ---- "E se? Num dia de sorte": re-simula o duelo inteiro no cenário do imprevisto (não altera o veredito oficial nem o link) ---- */
+function resolveLucky(a,b,mode){
+  const r=resolve(a,b,mode),zebra=100-winPct(r.margin),upset=Math.random()*100<zebra;
+  const imp=LUCK.imp[Math.floor(Math.random()*LUCK.imp.length)];
+  if(upset)return {winner:r.loser,loser:r.winner,margin:0.5+Math.random()*1.9,reasons:[],upset:true,imp:imp,fav:r.winner,und:r.loser,zebra:zebra};
+  return {winner:r.winner,loser:r.loser,margin:r.margin,reasons:r.reasons.slice(),upset:false,imp:imp,fav:r.winner,und:r.loser,zebra:zebra};
+}
+function luckyVerdict(a,b,mode,lr){
+  const win=lr.winner,los=lr.loser,afflicted=lr.upset?lr.fav:lr.und;
+  const impTxt=luckLine(lr.imp,{X:afflicted.n.split(' ')[0]});
+  const line=lr.upset?luckLine(LUCK.upset,{U:lr.und.n.split(' ')[0]}):luckLine(LUCK.hold,{F:lr.fav.n.split(' ')[0]});
+  const beats=buildBeats(a,b,lr,mode,lr);
+  const sw=mode==='cav'?'🏇':mode==='war'?'🐎':'⚔️';
+  return `<div class="luckbanner${lr.upset?' upset':''}">🎲 ${t('E se? Num dia de sorte')} · ${t('cenário hipotético, não altera o veredito oficial')}</div>
+   <div class="duel">${fcard(a,win===a,mode)}<div class="mid"><span class="sw">${sw}</span><span class="vs">VS</span></div>${fcard(b,win===b,mode)}</div>
+   <div class="verdictline"><div class="cl">${lr.upset?t('A zebra aconteceu'):t('O favorito confirma')} · ${t('margem')} ${lr.margin.toFixed(1)}</div><div class="h">${t('Vence')}: ${win.n}</div><p style="margin:4px 0 2px;font-size:.95rem;font-weight:700;color:${lr.upset?'#d8544a':'var(--accent)'}">🎲 ${impTxt}. ${line}</p></div>
+   <div class="steps"><h4>${t('Passo a passo do duelo')}</h4><ol>${beats.map(x=>`<li><span class="st-t">${x.text}</span>${x.detail?`<span class="st-d">${x.detail}</span>`:''}</li>`).join('')}</ol></div>
+   <div class="sharebar"><button class="simbtn" id="luckAgain">🎲 ${t('Rolar de novo')}</button><button class="simbtn ghost" id="backOfficial">↩ ${t('Voltar ao veredito oficial')}</button></div>`;
+}
+function showLuckyVerdict(a,b,mode,lr){clearDuelTimers();fResult.innerHTML=luckyVerdict(a,b,mode,lr);
+  const la=$('luckAgain');if(la)la.onclick=()=>playLucky(a,b,mode);
+  const bo=$('backOfficial');if(bo)bo.onclick=()=>showVerdict(a,b,mode);}
+function playLucky(a,b,mode){
+  if(!a||!b||a===b)return;const lr=resolveLucky(a,b,mode);
+  const beats=buildBeats(a,b,lr,mode,lr),anim=beats.filter(x=>x.key);
+  fResult.innerHTML='<div class="luckbanner'+(lr.upset?' upset':'')+'">🎲 '+t('E se? Num dia de sorte')+' · '+t('cenário hipotético, não altera o veredito oficial')+'</div>'+duelStage(a,b,mode);
+  const narr=$('narr'),ta=fResult.querySelector('.tens .ta'),tb=fResult.querySelector('.tens .tb'),ctrl=fResult.querySelector('.duelctrl');
+  const duelEl=fResult.querySelector('.duel'),cards=duelEl?duelEl.querySelectorAll('.fighter'):[],cardA=cards[0],cardB=cards[1],mid=duelEl?duelEl.querySelector('.mid'):null,tens=fResult.querySelector('.tens');
+  const arena=fResult.querySelector('.duelarena'),silL=arena?arena.querySelector('.sil.left'):null,silR=arena?arena.querySelector('.sil.right'):null,spark=arena?arena.querySelector('.arena-spark'):null;
+  if(duelEl)duelEl.classList.add('live');
+  if(ctrl)ctrl.innerHTML='<button class="simbtn ghost" id="skipBtn">'+t('Pular')+' ⏭</button>';
+  const skip=$('skipBtn');if(skip)skip.onclick=()=>{clearDuelTimers();showLuckyVerdict(a,b,mode,lr);};
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const fx=(el,cls)=>{if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);};
+  const fxs=(el,cls)=>{if(!el)return;el.classList.remove(cls);el.getBoundingClientRect();el.classList.add(cls);};
+  const shakeIt=hard=>{if(!duelEl)return;duelEl.classList.remove('shake','shake-hard');void duelEl.offsetWidth;duelEl.classList.add(hard?'shake-hard':'shake');};
+  if(narr)narr.innerHTML='';clearDuelTimers();let i=0;
+  const step=()=>{
+    if(i>=anim.length){duelTimers.push(setTimeout(()=>showLuckyVerdict(a,b,mode,lr),reduce?0:1000));return;}
+    const bt=anim[i];
+    if(ta)ta.style.width=bt.mo+'%';if(tb)tb.style.width=(100-bt.mo)+'%';
+    if(narr){const p=document.createElement('p');p.className='nbeat'+(bt.fin?' fin':'');p.textContent=bt.text;narr.appendChild(p);requestAnimationFrame(()=>p.classList.add('in'));narr.scrollTop=narr.scrollHeight;}
+    if(!reduce){
+      const dir=bt.mo-(i>0?anim[i-1].mo:50);
+      if(!bt.fin){
+        if(cardA&&cardB){cardA.classList.remove('lunge','recoil');cardB.classList.remove('lunge','recoil');void cardA.offsetWidth;if(dir>0.4){cardA.classList.add('lunge');cardB.classList.add('recoil');}else if(dir<-0.4){cardB.classList.add('lunge');cardA.classList.add('recoil');}}
+        if(silL&&silR){silL.classList.remove('lunge','recoil');silR.classList.remove('lunge','recoil');silL.getBoundingClientRect();if(dir>0.4){silL.classList.add('lunge');silR.classList.add('recoil');}else if(dir<-0.4){silR.classList.add('lunge');silL.classList.add('recoil');}}
+      }
+      fx(mid,'clash');fx(tens,'pulse');fxs(spark,'flash');shakeIt(bt.fin);
+      fxSlash(arena,dir);if(Math.abs(dir)>=1.8||bt.fin)fxSpeed(arena);
+      if(bt.fin){const wc=lr.winner===a?cardA:cardB,lc=lr.winner===a?cardB:cardA;if(wc){wc.classList.remove('lunge','recoil');wc.classList.add('victor');}if(lc){lc.classList.remove('lunge','recoil');lc.classList.add('fallen');}const wS=lr.winner===a?silL:silR,lS=lr.winner===a?silR:silL;if(wS){wS.classList.remove('recoil');wS.classList.add('lunge');}if(lS){lS.classList.remove('lunge');lS.classList.add('recoil','down');}fxFinish(arena,bt.kanji);fxIai(arena,lr.winner===a?'L':'R');fx(duelEl,'finish');}
+    }
+    i++;duelTimers.push(setTimeout(step,reduce?0:2000));
+  };step();
+}
 function playDuel(){
   const a=W[comboA.value],b=W[comboB.value];if(!a||!b||a===b)return;
   const r=resolve(a,b,simMode),beats=buildBeats(a,b,r,simMode),anim=beats.filter(x=>x.key);
@@ -2227,6 +2286,12 @@ function t(s){if(LANG==='pt'||s==null)return s;const e=TR[s];return (e&&e[LANG])
  'E se? Num dia de sorte':{en:'What if? On a lucky day',es:'¿Y si? En un día de suerte',ja:'もしも？ 運のいい日なら',fr:'Et si ? Un jour de chance',it:'E se? In un giorno fortunato'},
  'Rolar de novo':{en:'Roll again',es:'Tirar de nuevo',ja:'もう一度振る',fr:'Relancer',it:'Tira di nuovo'},
  'Chance de zebra':{en:'Upset chance',es:'Probabilidad de sorpresa',ja:'番狂わせの確率',fr:'Chance de surprise',it:'Probabilità di sorpresa'},
+ 'cenário hipotético, não altera o veredito oficial':{en:'hypothetical scenario, it doesn’t change the official verdict',es:'escenario hipotético, no altera el veredicto oficial',ja:'仮想シナリオ、公式結果は変わらない',fr:'scénario hypothétique, ne change pas le verdict officiel',it:'scenario ipotetico, non altera il verdetto ufficiale'},
+ 'Voltar ao veredito oficial':{en:'Back to the official verdict',es:'Volver al veredicto oficial',ja:'公式結果に戻る',fr:'Revenir au verdict officiel',it:'Torna al verdetto ufficiale'},
+ 'A zebra aconteceu':{en:'The upset happened',es:'Se dio la sorpresa',ja:'番狂わせが起きた',fr:'La surprise a eu lieu',it:'È arrivata la sorpresa'},
+ 'O favorito confirma':{en:'The favorite confirms',es:'El favorito confirma',ja:'本命が確定させる',fr:'Le favori confirme',it:'Il favorito conferma'},
+ 'O imprevisto abre a guarda — a zebra ganha corpo':{en:'The mishap breaks the guard — the upset takes shape',es:'El imprevisto abre la guardia — la sorpresa toma forma',ja:'不測の事態が構えを崩す——番狂わせが現実味を帯びる',fr:'l’imprévu ouvre la garde — la surprise prend corps',it:'l’imprevisto apre la guardia — la sorpresa prende forma'},
+ 'O imprevisto testa o favorito, que não cede':{en:'The mishap tests the favorite, who holds firm',es:'El imprevisto pone a prueba al favorito, que no cede',ja:'不測の事態が本命を試すが、崩れない',fr:'l’imprévu met le favori à l’épreuve, mais il tient bon',it:'l’imprevisto mette alla prova il favorito, che non cede'},
  'Cenário hipotético — não altera o veredito nem o link.':{en:'Hypothetical scenario — it changes neither the verdict nor the link.',es:'Escenario hipotético — no altera el veredicto ni el enlace.',ja:'仮想シナリオ——判定もリンクも変わらない。',fr:'Scénario hypothétique — il ne change ni le verdict ni le lien.',it:'Scenario ipotetico — non altera né il verdetto né il link.'},
  '<strong>Três cenários, uma engine.</strong> O ranking usa o duelo a pé como padrão, mas no simulador dá para trocar a arena: campo de batalha (de armadura) e a cavalo (montado) invertem os pesos — o alcance da lança e do arco passa à frente da esgrima — e podem mudar o campeão. Cada luta ainda traz a chance de vitória em %, um radar que compara os dois lado a lado e o botão "E se?", que joga o fator sorte sem mexer no resultado oficial.':{en:'<strong>Three arenas, one engine.</strong> The ranking uses the on-foot duel as its default, but in the simulator you can switch the arena: battlefield (in armor) and mounted invert the weights — spear and bow reach take priority over fencing — and can change the champion. Every fight also shows the win chance in %, a radar comparing the two side by side, and the "What if?" button, which rolls the luck factor without touching the official result.',es:'<strong>Tres escenarios, un motor.</strong> El ranking usa el duelo a pie como estándar, pero en el simulador puedes cambiar la arena: campo de batalla (con armadura) y a caballo (montado) invierten los pesos — el alcance de la lanza y el arco pasa por delante de la esgrima — y pueden cambiar al campeón. Cada combate también muestra la probabilidad de victoria en %, un radar que compara a los dos lado a lado y el botón "¿Y si?", que tira el factor suerte sin alterar el resultado oficial.',ja:'<strong>三つの舞台、一つのエンジン。</strong>ランキングは徒歩の決闘を基準とするが、シミュレーターでは舞台を変えられる——戦場（甲冑）と騎馬は重みを反転させ、槍と弓の間合いが剣術より優先し、王者が変わりうる。各対戦では勝率（％）、両者を並べて比べるレーダー、そして公式結果を変えずに運の要素を振る「もしも？」ボタンも表示される。',fr:'<strong>Trois arènes, un seul moteur.</strong> Le classement prend le duel à pied comme référence, mais dans le simulateur on peut changer d’arène : le champ de bataille (en armure) et le combat à cheval (monté) inversent les poids — l’allonge de la lance et de l’arc passe devant l’escrime — et peuvent changer le champion. Chaque combat affiche aussi la chance de victoire en %, un radar qui compare les deux côte à côte et le bouton « Et si ? », qui lance le facteur chance sans toucher au résultat officiel.',it:'<strong>Tre arene, un solo motore.</strong> La classifica usa il duello a piedi come standard, ma nel simulatore puoi cambiare arena: campo di battaglia (in armatura) e a cavallo (montato) invertono i pesi — l’allungo della lancia e dell’arco passa davanti alla scherma — e possono cambiare il campione. Ogni sfida mostra anche la probabilità di vittoria in %, un radar che confronta i due fianco a fianco e il pulsante "E se?", che tira il fattore fortuna senza toccare il risultato ufficiale.'},
  'A cavalo':{en:'Mounted',es:'A caballo',ja:'騎馬',fr:'À cheval',it:'A cavallo'},
