@@ -540,6 +540,13 @@
 .arena-svg .arena-spark.flash{animation:arenaSpark .45s ease-out}
 @keyframes arenaSpark{0%{transform:scale(.1);opacity:0}30%{opacity:1}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){.arena-svg .sil,.arena-svg .arena-spark{animation:none!important}.duelarena{opacity:.5}}
+/* ---- passo a passo no veredito ---- */
+.steps{margin:16px 0 4px}
+.steps h4{margin:0 0 9px;font-size:.95rem}
+.steps ol{margin:0;padding-left:0;list-style:none;counter-reset:st}
+.steps li{counter-increment:st;position:relative;padding:9px 13px 9px 42px;margin:7px 0;border-radius:9px;background:rgba(127,127,127,.08);font-size:.92rem;line-height:1.5}
+.steps li::before{content:counter(st);position:absolute;left:10px;top:8px;width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps li:last-child{background:rgba(181,52,42,.1);font-weight:600}
 
 </style>
 
@@ -1508,6 +1515,7 @@ function duelStage(a,b,mode){
 }
 function duelVerdict(a,b,mode){
   const r=resolve(a,b,mode),cl=closeness(r.margin),clab=cl[0],ctag=cl[1],win=r.winner,los=r.loser;
+  const beats=buildBeats(a,b,r,mode);
   const edges=ABL.map(x=>({l:t(x[0]),d:win[x[1]]-los[x[1]]})).filter(e=>e.d>=4).sort((p,q)=>q.d-p.d).slice(0,3).map(e=>`${e.l} +${e.d}`);
   const bullets=r.reasons.map(x=>{const s=t(x);return s.charAt(0).toUpperCase()+s.slice(1);});
   if(edges.length)bullets.push(t('Vantagem de atributo:')+' '+edges.join(', '));
@@ -1518,6 +1526,7 @@ function duelVerdict(a,b,mode){
   return `<div class="duel">${fcard(a,win===a,mode)}<div class="mid"><span class="sw">${mode==='war'?'🐎':'⚔️'}</span><span class="vs">VS</span></div>${fcard(b,win===b,mode)}</div>
    <div class="verdictline"><div class="cl">${t(ctag)} · ${t('margem')} ${r.margin.toFixed(1)} · ${t(mode==='war'?'campo de batalha':'duelo')}</div><div class="h">${t('Vence')}: ${win.n}</div><p style="margin:2px 0 0;font-size:.85rem;color:var(--muted)">${t(clab)}.</p><ul>${bullets.map(x=>`<li>${x}</li>`).join('')}</ul></div>
    <div class="cmp"><div class="cmphead"><span class="a">${a.n.split(' ')[0]}</span><span>${t('atributo')}</span><span class="b">${b.n.split(' ')[0]}</span></div>${cmp}</div>
+   <div class="steps"><h4>${t('Passo a passo do duelo')}</h4><ol>${beats.map(x=>`<li>${x.text}</li>`).join('')}</ol></div>
    <div class="sharebar"><button class="simbtn ghost" id="replayBtn">↻ ${t('Assistir de novo')}</button><button class="simbtn" id="dlBtn">📸 ${t('Baixar imagem')}</button><button class="simbtn ghost" id="linkBtn">🔗 ${t('Copiar link')}</button></div>`;
 }
 function wireShare(a,b){
@@ -1541,7 +1550,7 @@ function playDuel(){
   const shakeIt=hard=>{if(!duelEl)return;duelEl.classList.remove('shake','shake-hard');void duelEl.offsetWidth;duelEl.classList.add(hard?'shake-hard':'shake');};
   if(narr)narr.innerHTML='';clearDuelTimers();let i=0;
   const step=()=>{
-    if(i>=beats.length){duelTimers.push(setTimeout(()=>showVerdict(a,b,simMode),reduce?0:800));return;}
+    if(i>=beats.length){duelTimers.push(setTimeout(()=>showVerdict(a,b,simMode),reduce?0:1000));return;}
     const bt=beats[i];
     if(ta)ta.style.width=bt.mo+'%';if(tb)tb.style.width=(100-bt.mo)+'%';
     if(narr){const p=document.createElement('p');p.className='nbeat'+(bt.fin?' fin':'');p.textContent=bt.text;narr.appendChild(p);requestAnimationFrame(()=>p.classList.add('in'));narr.scrollTop=narr.scrollHeight;}
@@ -1560,7 +1569,7 @@ function playDuel(){
         fx(duelEl,'finish');
       }
     }
-    i++;duelTimers.push(setTimeout(step,reduce?0:1200));
+    i++;duelTimers.push(setTimeout(step,reduce?0:2000));
   };step();
 }
 function renderDuel(){
@@ -1950,7 +1959,8 @@ function t(s){if(LANG==='pt'||s==null)return s;const e=TR[s];return (e&&e[LANG])
  'Link copiado!':{en:'Link copied!',es:'¡Enlace copiado!',ja:'リンクをコピーしました！',fr:'Lien copié !',it:'Link copiato!'},
  'Copie o link:':{en:'Copy the link:',es:'Copia el enlace:',ja:'リンクをコピー:',fr:'Copiez le lien :',it:'Copia il link:'},
  'Quem venceria este duelo?':{en:'Who would win this duel?',es:'¿Quién ganaría este duelo?',ja:'この決闘、勝つのは？',fr:'Qui gagnerait ce duel ?',it:'Chi vincerebbe questo duello?'},
- 'Aperte “Assistir” e veja o duelo se desenrolar golpe a golpe.':{en:'Hit “Watch” and see the duel unfold blow by blow.',es:'Pulsa “Ver” y mira el duelo desarrollarse golpe a golpe.',ja:'「見る」を押すと、決闘が一手ずつ展開します。',fr:'Appuyez sur « Voir » et regardez le duel se dérouler coup par coup.',it:'Premi “Guarda” e vedi il duello svolgersi colpo dopo colpo.'}
+ 'Aperte “Assistir” e veja o duelo se desenrolar golpe a golpe.':{en:'Hit “Watch” and see the duel unfold blow by blow.',es:'Pulsa “Ver” y mira el duelo desarrollarse golpe a golpe.',ja:'「見る」を押すと、決闘が一手ずつ展開します。',fr:'Appuyez sur « Voir » et regardez le duel se dérouler coup par coup.',it:'Premi “Guarda” e vedi il duello svolgersi colpo dopo colpo.'},
+ 'Passo a passo do duelo':{en:'Blow by blow',es:'Paso a paso del duelo',ja:'一手ずつの流れ',fr:'Le duel coup par coup',it:'Il duello colpo per colpo'}
 };for(var k in X){if(TR[k]){for(var l in X[k])TR[k][l]=X[k][l];}else TR[k]=X[k];}})();
 
 /*__IT_PATCH__ Italiano (6º idioma) */;(function(){
